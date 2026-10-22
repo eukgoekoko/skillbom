@@ -123,6 +123,13 @@
               }
             }
           }
+        },
+        "mergedFrom": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "serialNumbers of the BOMs this one was merged from (skillbom merge)."
         }
       }
     },
@@ -185,6 +192,11 @@
         "installations": {
           "type": "integer",
           "minimum": 0
+        },
+        "hosts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Distinct hosts with at least one installation."
         },
         "byKind": {
           "type": "object",

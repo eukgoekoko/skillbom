@@ -25,6 +25,9 @@ Add options only when the user's request calls for them:
 | a policy (allowed/denied licenses) | `--policy FILE` (YAML with `allowedLicenses`, `deniedLicenses`, `severities`) |
 | a specific folder of skills | `--root DIR` (add `--no-home` to scan only that folder) |
 | their company name on the report | `--organization "NAME"` |
+| a machine name instead of the pseudonymous host id | `--host-id NAME` |
+
+To combine scans from several machines (BOM files the user collected), run `"<base>/../../bin/skillbom" merge A.json B.json ... -o "$OUT/merged.json" --html "$OUT/merged.html"` instead of `scan`.
 
 On the first run the launcher may spend a few seconds installing PyYAML into `~/.cache/skillbom`. That's expected.
 

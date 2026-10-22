@@ -24,6 +24,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time 
 .venv/bin/skillbom scan --include-catalogs --policy policy.yaml       # add marketplace-clone plugins; apply a policy
 .venv/bin/skillbom scan --no-home --project DIR --root DIR             # scan only given dirs
 .venv/bin/skillbom report bom.json -o report.html                     # HTML audit report (or scan --html FILE)
+.venv/bin/skillbom merge a.json b.json -o all.json --html all.html    # organization-wide BOM from per-machine scans
 .venv/bin/python scripts/validate.py [FILE ...]                       # validate examples (or files) against the schemas
 ```
 
@@ -47,6 +48,7 @@ The pipeline runs `cli.py` → `discover.py` → `bom.py`. `bom.py` calls `hashi
 - **`licenses.py`** collects `Evidence` from every source, and `Detection.best` resolves it. Own evidence always beats inherited evidence (`INHERITED_SOURCES`), whatever the confidence. That ordering was a real bug found on real data: a plugin's proprietary LICENSE lost to its marketplace repo's Apache LICENSE.
 - **`spdx.py`** parses expressions into DNF, a list of choices where each choice is a set of ids that must all be complied with. Policy checks and grant checks work on these choices. `data/spdx-grants.yaml` maps SPDX ids to the license-file `grants` vocabulary, and also holds the accepted unmapped ids and aliases. An id that is in none of those lists makes an expression invalid.
 - **`report.py`** renders a BOM as one self-contained HTML file with no external assets, so it can be emailed or printed to PDF. The table is rendered server-side, and JS only adds filtering, sorting and tooltips. Findings are grouped per rule. Every BOM string passes through `html.escape`, because component names come from untrusted SKILL.md files. `spdx.category()` is shared with `scripts/corpus/analyze.py`.
+- **`merge.py`** combines per-host BOMs. bomRefs are content hashes, so they line up across hosts. Installations are unioned. The license detection with the strongest status and confidence wins, and license-derived findings (`LICENSE_RULES`) are kept only from the BOM whose detection won, so a weaker scan's stale findings are dropped. Other findings are deduplicated. `metadata.mergedFrom` records the input serials, and `summary.hosts` counts distinct hosts, which is the basis for seat counting.
 - **`bom.py`** dedupes components by `(kind, content hash)` and keeps the detection from the first occurrence. `bomRef` is `<kind>-<hash[:12]>`, which stays stable across scans. Paths under the home dir are written as `~`, and host ids are pseudonymous hashes.
 
 Real-world layouts the scanner handles, which are easy to get wrong:

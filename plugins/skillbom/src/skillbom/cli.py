@@ -9,6 +9,7 @@ from pathlib import Path
 
 from skillbom import __version__, discover
 from skillbom.bom import build
+from skillbom.merge import merge, policies
 from skillbom.report import render
 from skillbom.rules import Policy
 
@@ -28,9 +29,16 @@ def _parser() -> argparse.ArgumentParser:
                    help="include plugins available in marketplace clones but not installed")
     s.add_argument("--policy", type=Path, help="YAML policy (allowedLicenses, deniedLicenses, severities)")
     s.add_argument("--organization", help="organization name for the report metadata")
+    s.add_argument("--host-id", help="identifier for this machine in the BOM (default: a pseudonymous hash)")
     s.add_argument("-o", "--output", type=Path, help="write the BOM here instead of stdout")
     s.add_argument("--html", type=Path, metavar="FILE", help="also write an HTML audit report")
     s.add_argument("-q", "--quiet", action="store_true", help="no summary on stderr")
+    m = sub.add_parser("merge", help="merge Skill BOMs from several machines into one")
+    m.add_argument("boms", type=Path, nargs="+", help="Skill BOM JSON files")
+    m.add_argument("-o", "--output", type=Path, help="write the merged BOM here instead of stdout")
+    m.add_argument("--html", type=Path, metavar="FILE", help="also write an HTML audit report")
+    m.add_argument("--organization", help="organization name (default: the inputs' common one)")
+    m.add_argument("-q", "--quiet", action="store_true", help="no summary on stderr")
     r = sub.add_parser("report", help="render a Skill BOM (JSON) as an HTML audit report")
     r.add_argument("bom", type=Path, help="Skill BOM JSON file")
     r.add_argument("-o", "--output", type=Path, required=True, help="HTML file to write")
@@ -40,7 +48,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def _summary(bom: dict) -> str:
     s = bom["summary"]
-    lines = [f"{s['components']} components, {s['installations']} installations",
+    lines = [f"{s['components']} components, {s['installations']} installations on {s.get('hosts', 1)} host(s)",
              "licenses: " + ", ".join(f"{k} {v}" for k, v in s["byLicense"].items())]
     sev = {k: v for k, v in s["findingsBySeverity"].items() if v}
     lines.append("findings: " + (", ".join(f"{k} {v}" for k, v in sev.items()) if sev else "none"))
@@ -54,6 +62,13 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.command == "report":
         args.output.write_text(render(json.loads(args.bom.read_text()), title=args.title))
+        return 0
+    if args.command == "merge":
+        boms = [json.loads(p.read_text()) for p in args.boms]
+        if len(policies(boms)) > 1:
+            print("skillbom: warning: inputs were scanned with different policies; "
+                  "the merged BOM records none", file=sys.stderr)
+        _write(merge(boms, organization=args.organization), args)
         return 0
     home = args.home.expanduser().resolve()
     candidates: list[discover.Candidate] = []
@@ -71,8 +86,13 @@ def main(argv: list[str] | None = None) -> int:
         roots.append(d)
 
     policy = Policy.load(args.policy) if args.policy else None
-    bom = build(candidates, roots=roots, policy=policy, home=home, organization=args.organization)
+    bom = build(candidates, roots=roots, policy=policy, home=home, host=args.host_id,
+                organization=args.organization)
+    _write(bom, args)
+    return 0
 
+
+def _write(bom: dict, args) -> None:
     text = json.dumps(bom, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         args.output.write_text(text)
@@ -82,4 +102,3 @@ def main(argv: list[str] | None = None) -> int:
         args.html.write_text(render(bom))
     if not args.quiet:
         print(_summary(bom), file=sys.stderr)
-    return 0

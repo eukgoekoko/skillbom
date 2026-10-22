@@ -29,6 +29,14 @@ Skills under a plugin's `skills/*/` become separate components with a `contains`
 
 `installScope` records where an installation came from: `managed` (pushed by the org), `user`, `project` (checked into a repo), `plugin` (nested inside a plugin), `local` (`--root`), or `catalog` (available, not installed).
 
+## Merging scans
+
+Each machine runs `skillbom scan` (optionally with `--host-id` to use the organization's own machine names instead of the pseudonymous default), and `skillbom merge` combines the BOMs:
+
+- **Components** line up across hosts because `bomRef` is derived from the content hash. Their installations are unioned.
+- **When hosts detect different licenses** for the same content (for example, one copy sits in a repository with a LICENSE and another doesn't), the detection with the stronger status (declared > inferred > unknown) and then the higher confidence is kept. License-derived findings are taken only from the scan whose detection was kept. Other findings are deduplicated.
+- **Metadata:** `metadata.mergedFrom` lists the input `serialNumber`s, and `summary.hosts` counts distinct hosts. If the inputs were scanned with different policies, the merged BOM records no policy and the CLI warns.
+
 ## License detection
 
 `license.status` is `declared` when the resolved expression comes from a skill-license file, `inferred` when it comes from other evidence, and `unknown` otherwise. Every source the scanner consults is recorded in `evidence`, together with the raw `value` when the declared text isn't a valid SPDX expression.

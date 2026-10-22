@@ -117,7 +117,8 @@ def _inventory(bom: dict, by_ref: dict[str, list[dict]]) -> str:
             f'<td>{_e(STATUS_LABELS.get(lic["status"], lic["status"]))}</td>'
             f'<td>{_e(c["entitlement"]["status"])}</td>'
             f'<td class="small">{_e(source)}</td>'
-            f'<td class="num">{len(c["installations"])}</td>'
+            f'<td class="num" title="{len(c["installations"])} installation(s)">'
+            f'{len({i["host"] for i in c["installations"]})}</td>'
             f'<td data-sort="{worst if worst is not None else 9}">{sev_cell}</td></tr>')
     kinds = sorted({c["kind"] for c in bom["components"]})
     kind_opts = "".join(f'<option value="{_e(k)}">{_e(k)}</option>' for k in kinds)
@@ -133,7 +134,7 @@ def _inventory(bom: dict, by_ref: dict[str, list[dict]]) -> str:
 <div class="table-wrap"><table id="inv">
 <thead><tr><th data-col="0">Component</th><th data-col="1">Kind</th><th data-col="2">License</th>
 <th data-col="3">Status</th><th data-col="4">Entitlement</th><th data-col="5">Source</th>
-<th data-col="6" class="num">Installs</th><th data-col="7">Worst finding</th></tr></thead>
+<th data-col="6" class="num">Hosts</th><th data-col="7">Worst finding</th></tr></thead>
 <tbody>{"".join(rows)}</tbody></table></div>'''
 
 
@@ -270,7 +271,8 @@ def render(bom: dict, title: str | None = None) -> str:
                    f'{" " + _e(policy["version"]) if policy.get("version") else ""}') if policy else "No policy applied"
 
     tiles = "".join([
-        _tile(total, "components", f'{summary.get("installations", 0)} installations'),
+        _tile(total, "components", f'{summary.get("installations", 0)} installations on '
+                                   f'{summary.get("hosts", len(hosts))} host{"s" if summary.get("hosts", len(hosts)) != 1 else ""}'),
         _tile(action, "critical / high findings", f'{sum(sev.values())} findings in total'),
         _tile(unknown, "without any license", f"{100 * unknown / total:.0f}% of components" if total else ""),
         _tile(restricted, "restricted or custom terms", "non-commercial, proprietary, custom"),
@@ -280,7 +282,7 @@ def render(bom: dict, title: str | None = None) -> str:
 <title>{_e(title)}</title><style>{CSS}</style></head>
 <body><main>
 <header><h1>{_e(title)}</h1>
-<p class="meta">Scanned {_e(meta["timestamp"])} · {len(hosts)} host{"s" if len(hosts) != 1 else ""} · {policy_text}
+<p class="meta">{"Merged from " + str(len(meta["mergedFrom"])) + " scans at " if meta.get("mergedFrom") else "Scanned "}{_e(meta["timestamp"])} · {len(hosts)} host{"s" if len(hosts) != 1 else ""} · {policy_text}
 · {_e(meta["tool"]["name"])} {_e(meta["tool"]["version"])} · <code>{_e(bom["serialNumber"])}</code></p></header>
 <section class="tiles">{tiles}</section>
 <h2>Findings</h2>{_findings(bom, names)}

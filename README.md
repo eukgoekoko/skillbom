@@ -32,6 +32,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/skillbom scan --policy policy.yaml         # apply allowed/denied licenses
 .venv/bin/skillbom scan -o bom.json --html report.html   # plus an HTML audit report
 .venv/bin/skillbom report bom.json -o report.html    # render an existing BOM
+.venv/bin/skillbom merge a.json b.json -o all.json --html all.html   # combine scans from several machines
 .venv/bin/pytest                                     # tests
 ```
 

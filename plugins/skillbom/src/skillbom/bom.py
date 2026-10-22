@@ -80,11 +80,7 @@ def build(candidates: list[Candidate], *, roots: list[Path], policy: Policy | No
         components[ref] = comp
         findings += evaluate(ref, c.name, d, integrity, policy)
 
-    findings.sort(key=lambda f: (SEVERITIES.index(f["severity"]), f["rule"], f["components"]))
-    for i, f in enumerate(findings, 1):
-        f["id"] = f"F{i}"
-    findings = [{"id": f.pop("id"), **f} for f in findings]
-
+    findings = number_findings(findings)
     comps = list(components.values())
     platforms = sorted({c.platform for c in candidates})
     scope_host = {"id": host, "os": _platform.system().lower()}
@@ -104,8 +100,6 @@ def build(candidates: list[Candidate], *, roots: list[Path], policy: Policy | No
     for parent, child in sorted(edges):
         deps.setdefault(parent, []).append(child)
 
-    status = Counter(c["license"]["status"] for c in comps)
-    severity = Counter(f["severity"] for f in findings)
     return {
         "bomFormat": "SkillBOM",
         "specVersion": "0.1",
@@ -114,13 +108,26 @@ def build(candidates: list[Candidate], *, roots: list[Path], policy: Policy | No
         "components": comps,
         "dependencies": [{"ref": p, "dependsOn": cs, "relation": "contains"} for p, cs in deps.items()],
         "findings": findings,
-        "summary": {
-            "components": len(comps),
-            "installations": sum(len(c["installations"]) for c in comps),
-            "byKind": dict(Counter(c["kind"] for c in comps)),
-            "byLicense": dict(Counter(c["license"]["expression"] for c in comps).most_common()),
-            "byLicenseStatus": {s: status.get(s, 0) for s in ("declared", "inferred", "unknown")},
-            "byEntitlement": dict(Counter(c["entitlement"]["status"] for c in comps)),
-            "findingsBySeverity": {s: severity.get(s, 0) for s in SEVERITIES},
-        },
+        "summary": summarize(comps, findings),
+    }
+
+
+def number_findings(findings: list[dict]) -> list[dict]:
+    """Sort findings by severity and give them sequential ids (F1, F2, ...)."""
+    ordered = sorted(findings, key=lambda f: (SEVERITIES.index(f["severity"]), f["rule"], f["components"]))
+    return [{"id": f"F{i}", **{k: v for k, v in f.items() if k != "id"}} for i, f in enumerate(ordered, 1)]
+
+
+def summarize(comps: list[dict], findings: list[dict]) -> dict:
+    status = Counter(c["license"]["status"] for c in comps)
+    severity = Counter(f["severity"] for f in findings)
+    return {
+        "components": len(comps),
+        "installations": sum(len(c["installations"]) for c in comps),
+        "hosts": len({i["host"] for c in comps for i in c["installations"]}),
+        "byKind": dict(Counter(c["kind"] for c in comps)),
+        "byLicense": dict(Counter(c["license"]["expression"] for c in comps).most_common()),
+        "byLicenseStatus": {s: status.get(s, 0) for s in ("declared", "inferred", "unknown")},
+        "byEntitlement": dict(Counter(c["entitlement"]["status"] for c in comps)),
+        "findingsBySeverity": {s: severity.get(s, 0) for s in SEVERITIES},
     }

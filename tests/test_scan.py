@@ -227,3 +227,47 @@ def test_report_on_example_bom(tmp_path):
     text = out.read_text()
     assert "Skill license audit — ACME AG" in text
     assert "entitlement-insufficient" in text
+
+
+def test_merge_hosts(tmp_path, capsys):
+    # Machine A: "shared" skill with no license evidence, plus "only-a".
+    a = tmp_path / "a"
+    skill(a / ".claude/skills/shared", "shared")
+    skill(a / ".claude/skills/only-a", "only-a", "license: MIT\n")
+    # Machine B: the same "shared" content inside a project whose LICENSE is MIT.
+    b = tmp_path / "b"
+    write(b / "proj/LICENSE", MIT)
+    skill(b / "proj/.claude/skills/shared", "shared")
+    for name, home, extra in (("a", a, []), ("b", tmp_path / "empty", ["--project", str(b / "proj")])):
+        assert main(["scan", "-q", "--home", str(home), "--host-id", f"host-{name}", "--organization", "ACME",
+                     "-o", str(tmp_path / f"{name}.json"), *extra]) == 0
+    out, html = tmp_path / "merged.json", tmp_path / "merged.html"
+    assert main(["merge", "-q", str(tmp_path / "a.json"), str(tmp_path / "b.json"), str(tmp_path / "a.json"),
+                 "-o", str(out), "--html", str(html)]) == 0
+    bom = json.loads(out.read_text())
+    schema = json.loads((ROOT / "schema/skill-bom.schema.json").read_text())
+    assert not list(Draft202012Validator(schema).iter_errors(bom))
+
+    shared = by_name(bom, "shared")
+    assert sorted(i["host"] for i in shared["installations"]) == ["host-a", "host-b"]  # a.json twice: no dupes
+    assert shared["license"]["expression"] == "MIT"  # stronger detection from host B wins
+    assert rules(bom, "shared") == []  # host A's license-unknown is stale and dropped
+    assert by_name(bom, "only-a")["installations"][0]["host"] == "host-a"
+    assert bom["summary"]["hosts"] == 2 and bom["summary"]["components"] == 2
+    assert [h["id"] for h in bom["metadata"]["scope"]["hosts"]] == ["host-a", "host-b"]
+    assert bom["metadata"]["scope"]["organization"] == "ACME"
+    assert len(bom["metadata"]["mergedFrom"]) == 3
+    assert "2 hosts" in html.read_text()
+
+
+def test_merge_warns_on_different_policies(tmp_path, capsys):
+    skill(tmp_path / "r/s", "s")
+    for name, policy in (("p1", "id: one\n"), ("p2", "id: two\n")):
+        pol = write(tmp_path / f"{name}.yaml", policy)
+        main(["scan", "-q", "--no-home", "--root", str(tmp_path / "r"), "--policy", str(pol),
+              "-o", str(tmp_path / f"{name}.json")])
+    capsys.readouterr()
+    assert main(["merge", "-q", str(tmp_path / "p1.json"), str(tmp_path / "p2.json"),
+                 "-o", str(tmp_path / "m.json")]) == 0
+    assert "different policies" in capsys.readouterr().err
+    assert "policy" not in json.loads((tmp_path / "m.json").read_text())["metadata"]
