@@ -13,9 +13,11 @@ from skillbom import spdx, textmatch
 from skillbom.discover import Candidate, read_json
 
 # Tie-break order when confidences are equal (docs/skill-bom.md).
-SOURCE_ORDER = ["skill-license-file", "plugin-manifest", "skill-frontmatter",
-                "text-match", "repo-license-file", "marketplace-metadata"]
-INHERITED_SOURCES = {"repo-license-file", "marketplace-metadata"}
+SOURCE_ORDER = ["skill-license-file", "plugin-manifest", "skill-frontmatter", "skill-body",
+                "text-match", "parent-manifest", "repo-license-file", "marketplace-metadata"]
+INHERITED_SOURCES = {"parent-manifest", "repo-license-file", "marketplace-metadata"}
+MANIFESTS = (".claude-plugin/plugin.json", "package.json")
+_BODY_HEADING = re.compile(r"^#{1,6}\s*licen[cs]e\s*:?\s*$", re.I | re.M)
 LICENSE_FILE = re.compile(r"^(un)?licen[cs]e|^copying", re.I)
 _FILE_REF = re.compile(r"[\w./-]*(?:LICEN[CS]E|COPYING)[\w.-]*", re.I)
 REPO_FACTOR = 0.8  # a repository-level LICENSE may not be meant for every skill in it
@@ -127,6 +129,25 @@ def _referenced(text: str, base: Path) -> list[Evidence]:
     return []
 
 
+def _body_license(skill_md: Path) -> str | None:
+    """First line under a "## License" heading in the SKILL.md body, without markdown."""
+    try:
+        text = skill_md.read_text(errors="replace")
+    except OSError:
+        return None
+    m = _BODY_HEADING.search(text)
+    if not m:
+        return None
+    for line in text[m.end():].splitlines():
+        line = line.strip()
+        if line.startswith("#"):
+            return None
+        if line:
+            line = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", line).replace("**", "").replace("`", "")
+            return re.split(r"(?<=[A-Za-z0-9)])\.\s", line)[0][:200]
+    return None
+
+
 def _license_file(directory: Path) -> tuple[Path | None, dict, str | None]:
     for name in ("skill-license.yaml", "skill-license.yml", "skill-license.json"):
         p = directory / name
@@ -169,14 +190,31 @@ def detect(c: Candidate) -> Detection:
     if own and (t := _text_evidence(own, "text-match")):
         ev.append(t)
 
-    # Nearest ancestor (up to the boundary) that has license files.
+    if c.kind == "skill" and (line := _body_license(c.path / "SKILL.md")):
+        for e in _interpret(line, "skill-body", c.path / "SKILL.md", c.path):
+            if e.confidence:
+                e.confidence = min(e.confidence, 0.8)
+            ev.append(e)
+
+    # Nearest ancestor (up to the boundary) that declares anything: a plugin or package
+    # manifest, or license files. Within one level a manifest is the more specific statement.
     directory = c.path
     while directory != c.boundary and c.boundary in directory.parents:
         directory = directory.parent
-        files = license_files(directory)
-        if files:
-            if t := _text_evidence(files, "repo-license-file", REPO_FACTOR):
-                ev.append(t)
+        level = []
+        for rel in MANIFESTS:
+            m = directory / rel
+            if m.is_file() and (value := read_json(m).get("license")):
+                for e in _interpret(value, "parent-manifest", m, directory):
+                    e.source = "parent-manifest" if e.source != "text-match" else "repo-license-file"
+                    if e.confidence:
+                        e.confidence *= REPO_FACTOR
+                    level.append(e)
+        files = [f for f in license_files(directory) if f not in {e.path for e in level}]
+        if files and (t := _text_evidence(files, "repo-license-file", REPO_FACTOR)):
+            level.append(t)
+        ev += level
+        if any(e.expression for e in level):
             break
 
     if "license" in c.marketplace_entry:

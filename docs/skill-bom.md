@@ -44,20 +44,29 @@ Each machine runs `skillbom scan` (optionally with `--host-id` to use the organi
 | source | where | confidence |
 |---|---|---|
 | `skill-license-file` | `skill-license.yaml` in the component directory | 1.0 |
-| `plugin-manifest` | `license` in `.claude-plugin/plugin.json` or `package.json` | 0.9 if valid SPDX |
+| `plugin-manifest` | `license` in the component's own `.claude-plugin/plugin.json` or `package.json` | 0.9 if valid SPDX |
 | `skill-frontmatter` | `license:` in the SKILL.md frontmatter | 0.9 if valid SPDX |
+| `skill-body` | the first line under a `## License` heading in the SKILL.md body | ≤ 0.8 |
 | `text-match` | LICENSE/COPYING files in the component directory, or a file the declared value names ("SEE LICENSE IN …", "terms in LICENSE.txt") | 0.9 (GNU family 0.85); "all rights reserved"/"proprietary" text → `LicenseRef-proprietary` at 0.5 |
-| `repo-license-file` | the nearest ancestor directory with a LICENSE, up to the scan boundary (marketplace clone, project root, scan root) | text-match × 0.8 |
+| `parent-manifest` | `license` in a `.claude-plugin/plugin.json` or `package.json` of a parent directory | declared value × 0.8 |
+| `repo-license-file` | license files in a parent directory | text-match × 0.8 |
 | `marketplace-metadata` | `license` in the catalog's `marketplace.json` entry | ≤ 0.7 |
+
+Parent directories are searched from the nearest upward, up to the scan boundary (marketplace clone, project root, or scan root). The first level that declares anything wins, and at that level a manifest is preferred over a license file. So a plugin that declares MIT inside an AGPL repository is MIT.
+
+License texts are identified in this order:
+1. **GNU licenses by their heading.** The GPL-3.0 text mentions the AGPL in section 13, so phrase matching would misfire. `-or-later` is reported only when an "any later version" notice appears before the license's own "How to Apply" appendix.
+2. **A recognized title line** ("MIT License", "PolyForm Noncommercial License 1.0.0").
+3. **Key phrases** anywhere in the text.
 
 Declared values that aren't SPDX are parsed in three steps:
 1. A free-text license name ("BSD-3-Clause license", "GPLv3", "MIT + Commons Clause", Creative Commons URLs, npm's `UNLICENSED`) resolves through the `names` table in `spdx-grants.yaml`, at confidence 0.8.
 2. Otherwise, a value mentioning "proprietary" resolves to `LicenseRef-proprietary` at 0.6.
 3. Any license file the value names is followed.
 
-License texts that match no fingerprint fall back to their title line ("MIT License – see repository root LICENSE"), at 0.6. If the title doesn't match either, the text resolves to `LicenseRef-custom` at 0.3: a license exists, but it isn't one we know.
+A title match counts 0.9 when the license's key phrases confirm it and 0.6 otherwise, which covers pointer texts such as "MIT License – see repository root LICENSE". A text that matches no heading, title or phrases resolves to `LicenseRef-custom` at 0.3: a license exists, but it isn't one we know.
 
-**Resolution.** The component's own evidence (the first four sources) always beats inherited evidence (`repo-license-file`, `marketplace-metadata`), because a plugin's own LICENSE overrides the license of the repository it sits in. Inherited evidence is used only when the component itself says nothing. Within a tier, the highest confidence wins, with ties broken in table order.
+**Resolution.** The component's own evidence (the first five sources) always beats inherited evidence (`parent-manifest`, `repo-license-file`, `marketplace-metadata`), because a plugin's own LICENSE overrides the license of the repository it sits in. Inherited evidence is used only when the component itself says nothing. Within a tier, the highest confidence wins, with ties broken in table order.
 
 Content is deduplicated by hash. When the same content shows up in several places, the license detected at the first occurrence is kept. Known limitation: an installed plugin's copy lives outside its marketplace clone, so it doesn't inherit the clone's repo LICENSE, while the catalog copy does.
 

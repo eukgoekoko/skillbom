@@ -392,7 +392,9 @@
                       "skill-license-file",
                       "plugin-manifest",
                       "skill-frontmatter",
+                      "skill-body",
                       "repo-license-file",
+                      "parent-manifest",
                       "marketplace-metadata",
                       "text-match"
                     ]

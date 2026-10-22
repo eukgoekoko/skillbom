@@ -1,9 +1,9 @@
 {
   "bomFormat": "SkillBOM",
   "specVersion": "0.1",
-  "serialNumber": "urn:uuid:8a90660b-d986-423f-a9e7-04b8adb20a11",
+  "serialNumber": "urn:uuid:57623211-13f2-49d3-b8a6-79525bcae22c",
   "metadata": {
-    "timestamp": "2026-10-22T23:18:40Z",
+    "timestamp": "2026-10-22T23:38:15Z",
     "tool": {
       "name": "skillbom",
       "version": "0.1.0"
@@ -44,9 +44,9 @@
       ]
     },
     "mergedFrom": [
-      "urn:uuid:4e512611-47f7-4a51-82ea-439fc2cd4545",
-      "urn:uuid:01a86fc0-af65-4cee-b573-5b616c97951d",
-      "urn:uuid:fbd36a92-b2be-4b80-a320-bae4da796d8d"
+      "urn:uuid:d275f79f-9624-4c4b-aa63-ee39d1fbfaab",
+      "urn:uuid:370e7ae7-6ff4-4f46-b5c1-e9b6637eed42",
+      "urn:uuid:5eaa0ebc-40b0-4773-9912-3fef8ff689a4"
     ],
     "policy": {
       "id": "acme-skill-policy",
@@ -411,6 +411,12 @@
         "expression": "MIT",
         "evidence": [
           {
+            "source": "parent-manifest",
+            "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/.claude-plugin/plugin.json",
+            "expression": "MIT",
+            "confidence": 0.72
+          },
+          {
             "source": "repo-license-file",
             "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/LICENSE",
             "expression": "MIT",
@@ -453,6 +459,12 @@
         "status": "inferred",
         "expression": "MIT",
         "evidence": [
+          {
+            "source": "parent-manifest",
+            "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/.claude-plugin/plugin.json",
+            "expression": "MIT",
+            "confidence": 0.72
+          },
           {
             "source": "repo-license-file",
             "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/LICENSE",

@@ -99,3 +99,31 @@ def test_content_hash(tmp_path):
     (tmp_path / "sub" / "x.txt").write_text("b")
     (tmp_path / "sub" / "x.txt").rename(tmp_path / "sub" / "y.txt")
     assert content_hash(tmp_path) != h
+
+
+GPL3_FULL = """GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+Preamble ... TERMS AND CONDITIONS ...
+13. Use with the GNU Affero General Public License. ...
+How to Apply These Terms to Your New Programs ...
+either version 3 of the License, or (at your option) any later version."""
+
+
+def test_gnu_heading_wins_and_appendix_is_not_a_notice():
+    # Accuracy run, S025/S182: full GPL-3.0 text was read as AGPL-3.0-or-later.
+    assert textmatch.identify("x" * 10 + "\n" + GPL3_FULL)[0] == "GPL-3.0-only"
+    padded = GPL3_FULL.replace("Preamble", "Preamble " + "lorem ipsum " * 300)
+    assert textmatch.identify(padded)[0] == "GPL-3.0-only"
+    # A short notice at the top does decide -or-later.
+    notice = "GNU GENERAL PUBLIC LICENSE Version 3\nThis program is free software ... any later version."
+    assert textmatch.identify(notice)[0] == "GPL-3.0-or-later"
+    lgpl = "GNU LESSER GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n... the GNU GPL ... GNU Affero ..."
+    assert textmatch.identify(lgpl)[0] == "LGPL-3.0-only"
+    agpl = "GNU AFFERO GENERAL PUBLIC LICENSE\nVersion 3, 19 November 2007"
+    assert textmatch.identify(agpl)[0] == "AGPL-3.0-only"
+
+
+def test_title_beats_later_mentions():
+    # Accuracy run, S059: an MIT file mentioning Apache-licensed third-party code.
+    text = MIT.replace("MIT License", "MIT License\n") + "\n\nThird-party: Apache License Version 2.0 applies to vendor/."
+    assert textmatch.identify("MIT License\n\n" + text)[0] == "MIT"

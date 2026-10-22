@@ -16,13 +16,13 @@
   <a href="docs/license-file.md">License-file spec</a>
 </p>
 
-skillbom scans the skills and plugins installed for Claude Code and Codex, works out each one's license, and writes a **Skill BOM** (JSON) and an **HTML audit report** you can hand to legal. It runs locally and uploads nothing.
+skillbom scans the skills and plugins installed for Claude Code and Codex, works out each one's license, and writes a **Skill BOM** and an **HTML audit report** you can hand to legal. A Skill BOM is a bill of materials: a JSON inventory of every skill and plugin, where it came from, and what it's licensed under, with the evidence for each. It runs locally and uploads nothing.
 
 <a href="https://eukgoekoko.github.io/skillbom/demo/report.html"><img src="docs/assets/report.png" alt="skillbom audit report: summary tiles and findings grouped by rule, with a fix for each"></a>
 
 ## Why
 
-A skill is installed by copying a single folder, but its license usually lives at the root of the repository it came from. In our [scan of 62,704 public skills](docs/research/corpus-2026-10.md), **80.5% carry no license of their own**. Hundreds don't permit commercial use, and proprietary skills circulate in popular collections. skillbom tells you which of these are on your machines.
+A skill is installed by copying a single folder, but its license usually lives at the root of the repository it came from. In our [scan of 62,704 public skills](docs/research/corpus-2026-10.md), **81% are licensed only through the repository or plugin they came from**, so the installed copy carries none. Hundreds don't permit commercial use, and proprietary skills circulate in popular collections. skillbom tells you which of these are on your machines.
 
 ## Quick start
 
@@ -102,7 +102,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## Status
 
-The specs are draft 0.1 and the scanner is a prototype. Detection accuracy has been spot-checked but not yet measured against a labeled sample. Issues and feedback are welcome.
+The specs are draft 0.1 and the scanner is a prototype. On a held-out sample of 100 public skills, license detection matched hand labels on every unambiguous case ([accuracy details](docs/research/corpus-2026-10.md#accuracy)). Issues and feedback are welcome.
 
 License categories summarize license texts. They are not legal advice.
 

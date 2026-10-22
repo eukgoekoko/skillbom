@@ -271,3 +271,27 @@ def test_merge_warns_on_different_policies(tmp_path, capsys):
                  "-o", str(tmp_path / "m.json")]) == 0
     assert "different policies" in capsys.readouterr().err
     assert "policy" not in json.loads((tmp_path / "m.json").read_text())["metadata"]
+
+
+def test_parent_manifest_and_body_license(tmp_path):
+    root = tmp_path / "repo"
+    write(root / "LICENSE", "GNU AFFERO GENERAL PUBLIC LICENSE\nVersion 3, 19 November 2007\n")
+    # Accuracy run, S015/S061/S196: a plugin declaring MIT inside an AGPL repo; nearest declaration wins.
+    plugin = root / "plugins/p"
+    write(plugin / ".claude-plugin/plugin.json", json.dumps({"name": "p", "license": "MIT"}))
+    skill(plugin / "skills/inner", "inner")
+    # Accuracy run, S082/S121: the only evidence is a repo-root plugin manifest.
+    root2 = tmp_path / "repo2"
+    write(root2 / ".claude-plugin/plugin.json", json.dumps({"name": "q", "license": "MIT"}))
+    skill(root2 / "skills/only-manifest", "only-manifest")
+    # Accuracy run, S120: a "## License" section in the SKILL.md body.
+    s = root2 / "skills/body"
+    write(s / "SKILL.md", "---\nname: body\ndescription: d\n---\n\n# body\n\n## License\n\n"
+                          "Apache License 2.0. See [LICENSE](../../LICENSE) for full terms.\n")
+    bom = scan(tmp_path, "--no-home", "--root", str(root), "--root", str(root2))
+    inner = by_name(bom, "inner")
+    assert inner["license"]["expression"] == "MIT"
+    assert inner["license"]["evidence"][0]["source"] == "parent-manifest"
+    assert by_name(bom, "only-manifest")["license"]["expression"] == "MIT"
+    body = by_name(bom, "body")["license"]
+    assert body["expression"] == "Apache-2.0" and body["evidence"][0]["source"] == "skill-body"

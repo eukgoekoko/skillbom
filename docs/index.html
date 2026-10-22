@@ -6,7 +6,7 @@
 <title>skillbom — license audit for AI agent skills</title>
 <meta name="description" content="See what licenses your installed AI agent skills and plugins are under. A Skill BOM scanner, audit report, and open license-file spec.">
 <meta property="og:title" content="skillbom — license audit for AI agent skills">
-<meta property="og:description" content="80% of public agent skills carry no license of their own. skillbom finds out what yours are under.">
+<meta property="og:description" content="81% of public agent skills carry no license of their own. skillbom finds out what yours are under.">
 <meta property="og:image" content="https://eukgoekoko.github.io/skillbom/assets/report.png">
 <style>
 :root{--bg:#fcfcfb;--panel:#ffffff;--border:#e4e2dc;--text:#0b0b0b;--text-2:#52514e;--muted:#6f6d68;
@@ -91,7 +91,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="hero-inner">
       <div>
         <h1>Know what your AI agent skills are licensed under.</h1>
-        <p class="lede">skillbom scans the skills and plugins installed for Claude Code and Codex, works out each one's license, and gives you a Skill BOM and an audit report you can hand to legal. It runs on your machine and uploads nothing.</p>
+        <p class="lede">skillbom scans the skills and plugins installed for Claude Code and Codex, works out each one's license, and gives you a Skill BOM (a bill of materials: every skill and plugin, where it came from and what it's licensed under) and an audit report you can hand to legal. It runs on your machine and uploads nothing.</p>
         <div class="ctas">
           <a class="btn primary" href="demo/report.html">View a sample report →</a>
           <a class="btn" href="https://github.com/eukgoekoko/skillbom">GitHub</a>
@@ -114,12 +114,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <h2>Skills travel without their licenses</h2>
     <p class="sub">A skill is installed by copying one folder. Its license usually sits at the root of the repository it came from, so the installed copy says nothing about what you may do with it.</p>
     <div class="stats">
-      <div class="stat"><b>80.5%</b><span>of public skills carry no license of their own; it only exists at the repo root</span></div>
-      <div class="stat"><b>7%</b><span>of repositories ship at least one skill with no license at all</span></div>
+      <div class="stat"><b>81%</b><span>of public skills are licensed only through the repository or plugin they came from</span></div>
+      <div class="stat"><b>5%</b><span>of repositories ship at least one skill with no license at all</span></div>
       <div class="stat"><b>681</b><span>public skills don't permit commercial use (CC-BY-NC, PolyForm Noncommercial, BUSL)</span></div>
       <div class="stat"><b>43</b><span>copies of proprietary skills redistributed in 12 public collections</span></div>
     </div>
-    <p class="source">From a scan of 62,704 skills in 1,211 public repositories, October 2026. <a href="research/corpus-2026-10.html">Read the study →</a></p>
+    <p class="source">From a scan of 62,704 skills in 1,211 public repositories, October 2026. Detection matched hand labels on 100% of unambiguous cases in a held-out sample. <a href="research/corpus-2026-10.html">Read the study →</a></p>
   </div>
 </section>
 
