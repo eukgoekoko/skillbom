@@ -57,3 +57,7 @@ Real-world layouts the scanner handles, which are easy to get wrong:
 ## Private notes
 
 `notes/` is gitignored and may hold private product notes. Read them for context when they exist. Never commit them, and never copy their contents into tracked files: this repository is public.
+
+## Remotes
+
+`origin` (GitLab, private) is where work is pushed. GitLab push-mirrors its protected branches, meaning `main`, to the public GitHub repo `github` (`eukgoekoko/skillbom`). Everything committed to `main` therefore becomes public. Commits use the GitHub noreply address, which is set in this repo's local git config. The private branch `archive/pre-public` on GitLab holds the history from before the public release; never push it to GitHub.
