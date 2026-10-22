@@ -1,0 +1,741 @@
+{
+  "bomFormat": "SkillBOM",
+  "specVersion": "0.1",
+  "serialNumber": "urn:uuid:8a90660b-d986-423f-a9e7-04b8adb20a11",
+  "metadata": {
+    "timestamp": "2026-10-22T23:18:40Z",
+    "tool": {
+      "name": "skillbom",
+      "version": "0.1.0"
+    },
+    "scope": {
+      "organization": "Acme Analytics (sample)",
+      "hosts": [
+        {
+          "id": "build-01",
+          "os": "darwin",
+          "platforms": [
+            "claude-code"
+          ],
+          "roots": [
+            "~/.claude"
+          ]
+        },
+        {
+          "id": "laptop-01",
+          "os": "darwin",
+          "platforms": [
+            "claude-code"
+          ],
+          "roots": [
+            "~/.claude"
+          ]
+        },
+        {
+          "id": "laptop-02",
+          "os": "darwin",
+          "platforms": [
+            "claude-code"
+          ],
+          "roots": [
+            "~/.claude"
+          ]
+        }
+      ]
+    },
+    "mergedFrom": [
+      "urn:uuid:4e512611-47f7-4a51-82ea-439fc2cd4545",
+      "urn:uuid:01a86fc0-af65-4cee-b573-5b616c97951d",
+      "urn:uuid:fbd36a92-b2be-4b80-a320-bae4da796d8d"
+    ],
+    "policy": {
+      "id": "acme-skill-policy",
+      "version": "2026-10",
+      "deniedLicenses": [
+        "GPL-*",
+        "AGPL-*"
+      ]
+    }
+  },
+  "components": [
+    {
+      "bomRef": "skill-7f59f5f19839",
+      "kind": "skill",
+      "name": "brand-voice",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "7f59f5f1983939cdfc6e6907b8033016271197914f7490db9eae4b76e482c9c6"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "unknown",
+        "expression": "NOASSERTION"
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/brand-voice",
+          "installScope": "user"
+        },
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/brand-voice",
+          "installScope": "user"
+        },
+        {
+          "host": "build-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/brand-voice",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-476523f07f2a",
+      "kind": "skill",
+      "id": "lexicon/contract-check",
+      "name": "contract-check",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "476523f07f2a9412992b7638f07d9fe7e66978b23ffb75290b2f6ab843053634"
+      },
+      "integrity": "match",
+      "license": {
+        "status": "declared",
+        "expression": "LicenseRef-commercial-team",
+        "evidence": [
+          {
+            "source": "skill-license-file",
+            "path": "~/.claude/skills/contract-check/skill-license.yaml",
+            "expression": "LicenseRef-commercial-team",
+            "confidence": 1.0
+          },
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/contract-check/LICENSE.md",
+            "expression": "LicenseRef-custom",
+            "confidence": 0.3
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/contract-check",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-57ab8bfd76b5",
+      "kind": "skill",
+      "name": "market-research",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "57ab8bfd76b5320273eebadd7b0bfb033dd957672948ba901706e58402ae461c"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "CC-BY-NC-4.0",
+        "evidence": [
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/market-research/LICENSE",
+            "expression": "CC-BY-NC-4.0",
+            "confidence": 0.9
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/market-research",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-502902d8d310",
+      "kind": "skill",
+      "name": "pdf-forms",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "502902d8d3105dc8709150f912c963d0265d7f3570bca3f38e81c6f6332e1021"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "Apache-2.0",
+        "evidence": [
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/pdf-forms/LICENSE",
+            "expression": "Apache-2.0",
+            "confidence": 0.9
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/pdf-forms",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-0e350fc5248a",
+      "kind": "skill",
+      "name": "release-notes",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "0e350fc5248a920fb462b40f4ab40ceaf4c36e65f5139e550920fe8427f9310f"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "Apache-2.0",
+        "evidence": [
+          {
+            "source": "skill-frontmatter",
+            "path": "~/.claude/skills/release-notes/SKILL.md",
+            "expression": "Apache-2.0",
+            "confidence": 0.9
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/release-notes",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-d201a22e17f3",
+      "kind": "skill",
+      "name": "slide-builder",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "d201a22e17f32757a6b0eed63df7222eae9089059db1d6593297cfdec65ec69a"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "LicenseRef-proprietary",
+        "evidence": [
+          {
+            "source": "skill-frontmatter",
+            "path": "~/.claude/skills/slide-builder/SKILL.md",
+            "expression": "LicenseRef-proprietary",
+            "confidence": 0.6,
+            "value": "Proprietary. See LICENSE.txt"
+          },
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/slide-builder/LICENSE.txt",
+            "expression": "LicenseRef-proprietary",
+            "confidence": 0.5
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/slide-builder",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-20fdc8b44988",
+      "kind": "skill",
+      "name": "sql-review",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "20fdc8b44988964d9f81098b1d267b91477ea82494261cf58ef512cf5741f151"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "MIT",
+        "evidence": [
+          {
+            "source": "skill-frontmatter",
+            "path": "~/.claude/skills/sql-review/SKILL.md",
+            "expression": "MIT",
+            "confidence": 0.9
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/sql-review",
+          "installScope": "user"
+        },
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/sql-review",
+          "installScope": "user"
+        },
+        {
+          "host": "build-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/sql-review",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "plugin-d2444fb6c486",
+      "kind": "plugin",
+      "name": "devtools",
+      "version": "1.4.0",
+      "publisher": "Acme Platform Team",
+      "source": {
+        "type": "marketplace",
+        "marketplace": "acme-internal"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "d2444fb6c486d0c11cd333e8a03c566bf4cece40c13f169b82c029bec01b0e3d"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "MIT",
+        "evidence": [
+          {
+            "source": "plugin-manifest",
+            "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/.claude-plugin/plugin.json",
+            "expression": "MIT",
+            "confidence": 0.9
+          },
+          {
+            "source": "text-match",
+            "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/LICENSE",
+            "expression": "MIT",
+            "confidence": 0.9
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0",
+          "installScope": "managed",
+          "enabled": true
+        },
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0",
+          "installScope": "managed",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-661d0552104e",
+      "kind": "skill",
+      "name": "api-docs",
+      "source": {
+        "type": "marketplace",
+        "marketplace": "acme-internal"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "661d0552104ecc277fb2b1a60f4b8dffb815a9160eebd857e88cc238845b7f46"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "MIT",
+        "evidence": [
+          {
+            "source": "repo-license-file",
+            "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/LICENSE",
+            "expression": "MIT",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/skills/api-docs",
+          "installScope": "plugin"
+        },
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/skills/api-docs",
+          "installScope": "plugin"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-df8e7c68b9a3",
+      "kind": "skill",
+      "name": "test-writer",
+      "source": {
+        "type": "marketplace",
+        "marketplace": "acme-internal"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "df8e7c68b9a301b03879de8920a416c6d97dcac895467810f8bde94f090075e2"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "MIT",
+        "evidence": [
+          {
+            "source": "repo-license-file",
+            "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/LICENSE",
+            "expression": "MIT",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "laptop-01",
+          "platform": "claude-code",
+          "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/skills/test-writer",
+          "installScope": "plugin"
+        },
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0/skills/test-writer",
+          "installScope": "plugin"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-3687eb70df7f",
+      "kind": "skill",
+      "name": "code-tour",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "3687eb70df7f0dfeaa4d215a803ee0868662190d01d01dec907092291941f81b"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "PolyForm-Noncommercial-1.0.0",
+        "evidence": [
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/code-tour/LICENSE",
+            "expression": "PolyForm-Noncommercial-1.0.0",
+            "confidence": 0.9
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/code-tour",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-6c7472624af6",
+      "kind": "skill",
+      "id": "lexicon/contract-check",
+      "name": "contract-check",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "6c7472624af6989f46e0680282ec8100b0aedab2f794b0b21b514b95a065ec79"
+      },
+      "integrity": "modified",
+      "license": {
+        "status": "declared",
+        "expression": "LicenseRef-commercial-team",
+        "evidence": [
+          {
+            "source": "skill-license-file",
+            "path": "~/.claude/skills/contract-check/skill-license.yaml",
+            "expression": "LicenseRef-commercial-team",
+            "confidence": 1.0
+          },
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/contract-check/LICENSE.md",
+            "expression": "LicenseRef-custom",
+            "confidence": 0.3
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/contract-check",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-52ca46fa4d64",
+      "kind": "skill",
+      "name": "data-cleaner",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "52ca46fa4d6470b3866c1513b825d5545bd0d43eb9ec74de77cf5958ba1a07a8"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "LicenseRef-custom",
+        "evidence": [
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/data-cleaner/LICENSE",
+            "expression": "LicenseRef-custom",
+            "confidence": 0.3
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "unknown"
+      },
+      "installations": [
+        {
+          "host": "laptop-02",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/data-cleaner",
+          "installScope": "user"
+        }
+      ]
+    },
+    {
+      "bomRef": "skill-eee250aec41b",
+      "kind": "skill",
+      "name": "legacy-helper",
+      "source": {
+        "type": "local"
+      },
+      "contentHash": {
+        "alg": "sha256",
+        "value": "eee250aec41b4a8b14f2b62abafd6b769dcede6ee44247a7b5447e9c91d93270"
+      },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "GPL-3.0-or-later",
+        "evidence": [
+          {
+            "source": "text-match",
+            "path": "~/.claude/skills/legacy-helper/LICENSE",
+            "expression": "GPL-3.0-or-later",
+            "confidence": 0.85
+          }
+        ]
+      },
+      "entitlement": {
+        "status": "not-required"
+      },
+      "installations": [
+        {
+          "host": "build-01",
+          "platform": "claude-code",
+          "path": "~/.claude/skills/legacy-helper",
+          "installScope": "user"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "plugin-d2444fb6c486",
+      "dependsOn": [
+        "skill-661d0552104e",
+        "skill-df8e7c68b9a3"
+      ],
+      "relation": "contains"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "rule": "license-denied",
+      "severity": "critical",
+      "components": [
+        "skill-eee250aec41b"
+      ],
+      "message": "'legacy-helper' is licensed GPL-3.0-or-later, which the policy does not allow.",
+      "remediation": "Remove the component or obtain it under an allowed license."
+    },
+    {
+      "id": "F2",
+      "rule": "commercial-use-restricted",
+      "severity": "high",
+      "components": [
+        "skill-3687eb70df7f"
+      ],
+      "message": "'code-tour' is licensed PolyForm-Noncommercial-1.0.0, which does not permit commercial use.",
+      "remediation": "Obtain a commercial license from the author or stop using it for work."
+    },
+    {
+      "id": "F3",
+      "rule": "commercial-use-restricted",
+      "severity": "high",
+      "components": [
+        "skill-57ab8bfd76b5"
+      ],
+      "message": "'market-research' is licensed CC-BY-NC-4.0, which does not permit commercial use.",
+      "remediation": "Obtain a commercial license from the author or stop using it for work."
+    },
+    {
+      "id": "F4",
+      "rule": "license-review",
+      "severity": "medium",
+      "components": [
+        "skill-52ca46fa4d64"
+      ],
+      "message": "'data-cleaner' has a license text that isn't a known license.",
+      "remediation": "Have someone read the license and record it as a LicenseRef- in a skill-license file."
+    },
+    {
+      "id": "F5",
+      "rule": "license-unknown",
+      "severity": "medium",
+      "components": [
+        "skill-7f59f5f19839"
+      ],
+      "message": "No license found for 'brand-voice'.",
+      "remediation": "Ask the author for a license, replace the component, or remove it."
+    },
+    {
+      "id": "F6",
+      "rule": "integrity-modified",
+      "severity": "info",
+      "components": [
+        "skill-6c7472624af6"
+      ],
+      "message": "Content of 'contract-check' differs from the hash declared in its skill-license file."
+    }
+  ],
+  "summary": {
+    "components": 14,
+    "installations": 21,
+    "hosts": 3,
+    "byKind": {
+      "skill": 13,
+      "plugin": 1
+    },
+    "byLicense": {
+      "MIT": 4,
+      "LicenseRef-commercial-team": 2,
+      "Apache-2.0": 2,
+      "NOASSERTION": 1,
+      "CC-BY-NC-4.0": 1,
+      "LicenseRef-proprietary": 1,
+      "PolyForm-Noncommercial-1.0.0": 1,
+      "LicenseRef-custom": 1,
+      "GPL-3.0-or-later": 1
+    },
+    "byLicenseStatus": {
+      "declared": 2,
+      "inferred": 11,
+      "unknown": 1
+    },
+    "byEntitlement": {
+      "unknown": 7,
+      "not-required": 7
+    },
+    "findingsBySeverity": {
+      "critical": 1,
+      "high": 2,
+      "medium": 2,
+      "low": 0,
+      "info": 1
+    }
+  }
+}

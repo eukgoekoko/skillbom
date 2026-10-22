@@ -11,7 +11,7 @@ SEVERITIES = ["critical", "high", "medium", "low", "info"]
 CATEGORY_LABELS = {
     "permissive": "Permissive", "copyleft": "Copyleft", "source-available": "Source-available",
     "non-commercial": "Non-commercial", "proprietary": "Proprietary", "custom": "Custom terms",
-    "other": "Other / unmapped", "none": "No license found",
+    "other": "Commercial / other", "none": "No license found",
 }
 STATUS_LABELS = {"declared": "Declared", "inferred": "Inferred", "unknown": "Unknown"}
 
@@ -75,7 +75,8 @@ def _findings(bom: dict, names: dict[str, str]) -> str:
                              f'{body_html}{fix}</li>')
         body = f'<ul class="findings">{"".join(cards)}</ul>'
     if info:
-        body += f'<p class="muted">{info} informational finding{"s" if info != 1 else ""} (e.g. modified copies) are listed per component in the inventory.</p>'
+        body += (f'<p class="muted">{info} informational finding{"s are" if info != 1 else " is"} '
+                 f'(e.g. modified copies) listed per component in the inventory.</p>')
     return body
 
 

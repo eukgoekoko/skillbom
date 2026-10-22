@@ -1,6 +1,6 @@
 # Skill License File — draft 0.1
 
-Schema: [`schema/skill-license.schema.json`](../schema/skill-license.schema.json) · Examples: [`examples/skill-license/`](../examples/skill-license/)
+Schema: [`schema/skill-license.schema.json`](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-license.schema.json) · Examples: [`examples/skill-license/`](https://github.com/eukgoekoko/skillbom/tree/main/examples/skill-license)
 
 A machine-readable license declaration for an agent skill or plugin. It is meant to be adopted by any catalog or runtime, so nothing in it is specific to Claude Code.
 

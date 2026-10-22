@@ -1,0 +1,4 @@
+# GitHub Pages (source: main branch, /docs). index.html is a static page;
+# the Markdown specs and research are rendered with the default theme.
+title: skillbom
+description: License audit for AI agent skills and plugins

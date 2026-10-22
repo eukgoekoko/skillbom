@@ -1,6 +1,6 @@
 # Skill BOM report — draft 0.1
 
-Schema: [`schema/skill-bom.schema.json`](../schema/skill-bom.schema.json) · Example: [`examples/skill-bom/acme-2026-10.json`](../examples/skill-bom/acme-2026-10.json)
+Schema: [`schema/skill-bom.schema.json`](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-bom.schema.json) · Example: [`examples/skill-bom/acme-2026-10.json`](https://github.com/eukgoekoko/skillbom/blob/main/examples/skill-bom/acme-2026-10.json)
 
 The scanner's output is an inventory of every skill and plugin installed across an organization, with license status, purchase coverage and findings. Its shape follows CycloneDX (`components` + `dependencies`), so it can later be exported to CycloneDX or SPDX for tools that already read SBOMs.
 

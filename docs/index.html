@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>skillbom — license audit for AI agent skills</title>
+<meta name="description" content="See what licenses your installed AI agent skills and plugins are under. A Skill BOM scanner, audit report, and open license-file spec.">
+<meta property="og:title" content="skillbom — license audit for AI agent skills">
+<meta property="og:description" content="80% of public agent skills carry no license of their own. skillbom finds out what yours are under.">
+<meta property="og:image" content="https://eukgoekoko.github.io/skillbom/assets/report.png">
+<style>
+:root{--bg:#fcfcfb;--panel:#ffffff;--border:#e4e2dc;--text:#0b0b0b;--text-2:#52514e;--muted:#6f6d68;
+--accent:#2a78d6;--accent-ink:#1c5cab;--code-bg:#f3f2ef;--hero-1:#eef4fc;--critical:#d03b3b;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--panel:#1d1d1b;--border:#34332f;
+--text:#f5f4ef;--text-2:#c3c2b7;--muted:#9c9a92;--accent:#3987e5;--accent-ink:#86b6ef;--code-bg:#262623;--hero-1:#18212d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141413;--panel:#1d1d1b;--border:#34332f;--text:#f5f4ef;--text-2:#c3c2b7;--muted:#9c9a92;
+--accent:#3987e5;--accent-ink:#86b6ef;--code-bg:#262623;--hero-1:#18212d;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration:none}a:hover{text-decoration:underline}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:24px}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:20px;flex-wrap:wrap}
+.logo{font-weight:700;font-size:18px;color:var(--text);letter-spacing:-.01em}
+.logo span{color:var(--accent)}
+nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+nav ul a{color:var(--text-2);font-size:15px}
+.hero{background:linear-gradient(180deg,var(--hero-1),var(--bg));border-bottom:1px solid var(--border)}
+.hero-inner{padding-block:64px 72px;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+h1{font-size:clamp(34px,5vw,52px);line-height:1.08;letter-spacing:-.025em;margin:0 0 18px}
+.lede{font-size:19px;color:var(--text-2);margin:0 0 28px;max-width:34em}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;font-weight:600;font-size:15px;border:1px solid var(--border);color:var(--text);background:var(--panel)}
+.btn:hover{text-decoration:none;border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.install{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 18px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05)}
+.install-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.install pre{margin:0;background:var(--code-bg);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.7}
+.install p{margin:12px 2px 0;font-size:14px;color:var(--text-2)}
+.copy{font:inherit;font-size:12px;border:1px solid var(--border);background:transparent;color:var(--text-2);border-radius:6px;padding:3px 9px;cursor:pointer}
+.copy:hover{border-color:var(--muted)}
+section{padding-block:72px}
+section+section{border-top:1px solid var(--border)}
+h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.02em;line-height:1.15;margin:0 0 12px}
+.sub{color:var(--text-2);font-size:18px;margin:0 0 36px;max-width:42em}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat b{display:block;font-size:34px;line-height:1.1;letter-spacing:-.02em;margin-bottom:8px}
+.stat span{color:var(--text-2);font-size:15px}
+.source{margin-top:18px;font-size:14px;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:step}
+.step{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px}
+.step::before{counter-increment:step;content:counter(step);display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:14px;margin-bottom:14px}
+.step h3{margin:0 0 8px;font-size:18px}
+.step p{margin:0;color:var(--text-2);font-size:15px}
+.shot{display:block;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.04),0 16px 48px rgba(0,0,0,.08)}
+.shot img{display:block;width:100%;height:auto}
+.shot-cap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px;color:var(--text-2);font-size:15px}
+.spec{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.spec pre{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:0;overflow-x:auto;line-height:1.6}
+.spec ul{margin:0 0 24px;padding-left:20px;color:var(--text-2)}
+.spec li{margin-bottom:10px}
+.k{color:var(--accent-ink)}.c{color:var(--muted)}
+.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.doc{display:block;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;color:var(--text)}
+.doc:hover{text-decoration:none;border-color:var(--accent)}
+.doc b{display:block;margin-bottom:6px}
+.doc span{color:var(--text-2);font-size:15px}
+footer{border-top:1px solid var(--border);padding-block:32px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:860px){.hero-inner,.spec{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.steps,.docs{grid-template-columns:1fr}
+.hero-inner{padding-block:40px 48px;gap:32px}section{padding-block:52px}}
+@media (max-width:440px){.stats{grid-template-columns:1fr}nav ul{gap:14px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="./">skill<span>bom</span></a>
+      <ul>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="demo/report.html">Sample report</a></li>
+        <li><a href="#spec">License file</a></li>
+        <li><a href="research/corpus-2026-10.html">Research</a></li>
+        <li><a href="https://github.com/eukgoekoko/skillbom">GitHub</a></li>
+      </ul>
+    </nav>
+    <div class="hero-inner">
+      <div>
+        <h1>Know what your AI agent skills are licensed under.</h1>
+        <p class="lede">skillbom scans the skills and plugins installed for Claude Code and Codex, works out each one's license, and gives you a Skill BOM and an audit report you can hand to legal. It runs on your machine and uploads nothing.</p>
+        <div class="ctas">
+          <a class="btn primary" href="demo/report.html">View a sample report →</a>
+          <a class="btn" href="https://github.com/eukgoekoko/skillbom">GitHub</a>
+        </div>
+      </div>
+      <div class="install">
+        <div class="install-head"><span>Install in Claude Code</span><button class="copy" data-copy="install-cmds">Copy</button></div>
+        <pre id="install-cmds">/plugin marketplace add eukgoekoko/skillbom
+/plugin install skillbom@skillbom
+/skillbom:audit</pre>
+        <p>Or just ask Claude: <em>“what licenses are my skills under?”</em> Needs Python 3.9+.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="why">
+  <div class="wrap">
+    <h2>Skills travel without their licenses</h2>
+    <p class="sub">A skill is installed by copying one folder. Its license usually sits at the root of the repository it came from, so the installed copy says nothing about what you may do with it.</p>
+    <div class="stats">
+      <div class="stat"><b>80.5%</b><span>of public skills carry no license of their own; it only exists at the repo root</span></div>
+      <div class="stat"><b>7%</b><span>of repositories ship at least one skill with no license at all</span></div>
+      <div class="stat"><b>681</b><span>public skills don't permit commercial use (CC-BY-NC, PolyForm Noncommercial, BUSL)</span></div>
+      <div class="stat"><b>43</b><span>copies of proprietary skills redistributed in 12 public collections</span></div>
+    </div>
+    <p class="source">From a scan of 62,704 skills in 1,211 public repositories, October 2026. <a href="research/corpus-2026-10.html">Read the study →</a></p>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="sub">One command per machine. Merge the results for the whole team.</p>
+    <div class="steps">
+      <div class="step"><h3>Scan</h3><p>Finds user, project, managed and synced skills, installed plugins and their nested skills, for Claude Code and Codex. Each distinct version is fingerprinted by content hash.</p></div>
+      <div class="step"><h3>Detect</h3><p>Reads license files, plugin manifests, SKILL.md frontmatter and LICENSE texts, including source-available licenses. Every conclusion keeps its evidence and a confidence score.</p></div>
+      <div class="step"><h3>Report</h3><p>Writes a Skill BOM (JSON) and a self-contained HTML audit report with findings and fixes. <code>skillbom merge</code> combines scans from many machines into one.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="report">
+  <div class="wrap">
+    <h2>An audit report legal can read</h2>
+    <p class="sub">Findings grouped by rule with a fix for each, the license mix, and a filterable inventory with the evidence behind every license. It prints cleanly to PDF.</p>
+    <a class="shot" href="demo/report.html"><img src="assets/report.png" alt="Sample skillbom audit report: summary tiles, a critical license-denied finding, non-commercial skills, a custom license to review, and an unlicensed skill" width="2200" height="1480"></a>
+    <div class="shot-cap"><span>Sample data: an invented company with three machines.</span><a href="demo/report.html">Open the interactive sample →</a></div>
+  </div>
+</section>
+
+<section id="spec">
+  <div class="wrap spec">
+    <div>
+      <h2>An open license file for skills</h2>
+      <p class="sub">A <code>skill-license.yaml</code> next to <code>SKILL.md</code> declares the license in a form tools can check.</p>
+      <ul>
+        <li>Standard <strong>SPDX</strong> expressions, plus commercial offers as <code>LicenseRef-</code> terms.</li>
+        <li>Machine-readable <strong>grants</strong>: commercial use, modification, redistribution, bundling into plugins, hosted use.</li>
+        <li>A <strong>content hash</strong>, so modified copies are detectable.</li>
+        <li><strong>Includes</strong>, for checking license compatibility when plugins bundle other people's skills.</li>
+      </ul>
+      <a class="btn" href="license-file.html">Read the spec</a>
+    </div>
+<pre><span class="c"># skill-license.yaml</span>
+<span class="k">specVersion</span>: "0.1"
+<span class="k">subject</span>:
+  <span class="k">kind</span>: skill
+  <span class="k">id</span>: lexicon/contract-check
+  <span class="k">version</span>: 2.1.0
+<span class="k">license</span>:
+  <span class="k">expression</span>: CC-BY-NC-4.0 OR LicenseRef-team
+  <span class="k">offers</span>:
+    - <span class="k">id</span>: LicenseRef-team
+      <span class="k">scope</span>: { licensee: team, seats: 10 }
+      <span class="k">term</span>: { type: subscription, durationDays: 365 }
+      <span class="k">grants</span>:
+        <span class="k">commercialUse</span>: true
+        <span class="k">modify</span>: true
+        <span class="k">compose</span>: internal-only</pre>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="wrap">
+    <h2>Documentation</h2>
+    <p class="sub">Draft 0.1. Feedback and issues are welcome on GitHub.</p>
+    <div class="docs">
+      <a class="doc" href="license-file.html"><b>License file spec</b><span>Semantics of grants and offers, the content hash, and the composition check.</span></a>
+      <a class="doc" href="skill-bom.html"><b>Skill BOM spec</b><span>Report format, where the scanner looks, detection sources and confidences, and the rule catalog.</span></a>
+      <a class="doc" href="research/corpus-2026-10.html"><b>Corpus study</b><span>How 62,704 public skills are licensed, the method, and its limitations.</span></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>skillbom · Apache-2.0 · License categories summarize license texts and are not legal advice.</span>
+    <a href="https://github.com/eukgoekoko/skillbom">github.com/eukgoekoko/skillbom</a>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', async () => {
+  const text = document.getElementById(b.dataset.copy).textContent;
+  try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+  catch (e) { b.textContent = 'Select & copy'; }
+  setTimeout(() => b.textContent = 'Copy', 1600);
+}));
+</script>
+</body>
+</html>
