@@ -1,0 +1,19 @@
+{
+  "name": "skillbom",
+  "version": "0.1.0",
+  "description": "License audit for installed agent skills and plugins: scans this machine, detects each skill's license, and writes a Skill BOM plus an HTML audit report. Runs locally; nothing is uploaded.",
+  "author": {
+    "name": "eukgoekoko"
+  },
+  "homepage": "https://github.com/eukgoekoko/skillbom",
+  "repository": "https://github.com/eukgoekoko/skillbom",
+  "license": "Apache-2.0",
+  "keywords": [
+    "license",
+    "compliance",
+    "audit",
+    "skills",
+    "sbom",
+    "spdx"
+  ]
+}

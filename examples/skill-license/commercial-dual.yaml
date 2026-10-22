@@ -1,0 +1,50 @@
+# Paid skill: free for non-commercial use, commercial offers for teams and orgs.
+specVersion: "0.1"
+subject:
+  kind: skill
+  id: lexwerk/contract-review
+  name: Contract Review (DE/EN)
+  version: 1.2.0
+  description: Reviews B2B contracts against German commercial law checklists.
+  homepage: https://lexwerk.example/skills/contract-review
+  contentHash:
+    alg: sha256
+    value: 8f46f87124f4cad3e3789e4e4a7b8c1caa0aa14d6ac6f34a8a9e3a16e4463688
+  platforms: [claude-code, claude-ai]
+licensors:
+  - name: Lexwerk GmbH
+    url: https://lexwerk.example
+    role: publisher
+license:
+  expression: CC-BY-NC-4.0 OR LicenseRef-commercial-team OR LicenseRef-commercial-org
+  text: LICENSE.md
+  offers:
+    - id: LicenseRef-commercial-team
+      title: Team license
+      scope: { licensee: team, seats: 10 }
+      term: { type: subscription, durationDays: 365 }
+      grants:
+        internalUse: true
+        commercialUse: true
+        modify: true
+        redistribute: none
+        compose: internal-only
+      obligations: [keep-license-file]
+      price: { amount: 49, currency: EUR, per: year-seat }
+      purchaseUrl: https://market.example/s/lexwerk/contract-review
+      termsUrl: https://lexwerk.example/terms/team-1.0
+    - id: LicenseRef-commercial-org
+      title: Organization license with redistribution in plugins
+      scope: { licensee: organization, affiliatesIncluded: true }
+      term: { type: perpetual, updatesIncludedDays: 365 }
+      grants:
+        internalUse: true
+        commercialUse: true
+        modify: true
+        redistribute: modified
+        compose: redistributable
+        serviceUse: true
+      obligations: [attribution, keep-license-file]
+      price: { amount: 4900, currency: EUR, per: license }
+      termsUrl: https://lexwerk.example/terms/org-1.0
+attribution: "Contract Review (c) 2026 Lexwerk GmbH"

@@ -1,0 +1,59 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Status
+
+The repo contains:
+
+- `schema/skill-license.schema.json` + `docs/license-file.md`: the open license-file format (`skill-license.yaml`, placed next to SKILL.md or a plugin manifest).
+- `schema/skill-bom.schema.json` + `docs/skill-bom.md`: the scanner's "Skill BOM" report format.
+- `.claude-plugin/marketplace.json` + `plugins/skillbom/`: the repo is a Claude Code marketplace with one plugin. The plugin holds an `audit` skill and a `bin/skillbom` launcher. The launcher picks a python3 that has PyYAML, else `uv`, else a venv in `~/.cache/skillbom`, and runs the package from `plugins/skillbom/src` via PYTHONPATH. The package lives inside the plugin directory because Claude Code copies only that directory into its plugin cache. Validate with `claude plugin validate .`.
+- `plugins/skillbom/src/skillbom/`: the scanner prototype (Python, working name `skillbom`). There's no marketplace or purchase registry yet, so entitlement checks report `unknown`.
+- `examples/`: sample files for both formats. The BOM example (`acme-2026-10.json`) is a scan of the same skills declared in `examples/skill-license/`, so keep the two sets consistent when either changes (hashes, ids, offer ids, summary counts). It is hand-written, not scanner output.
+
+The JSON Schemas cover structure only. Semantics that a schema can't express are defined in the docs: default-deny grants, how `OR` choices are resolved, the composition-check table, the content-hash procedure, detection sources and confidences, and the rule catalog. When you change the scanner's behavior, update the schema and doc for that format in the same change. The docs mark which rules are implemented.
+
+## Commands
+
+```sh
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # one-time setup (editable install + dev deps); supports Python >= 3.9
+.venv/bin/pytest                                                      # all tests
+.venv/bin/pytest tests/test_scan.py::test_scan_home                   # a single test
+.venv/bin/skillbom scan -o bom.json                                   # scan this machine (summary on stderr)
+.venv/bin/skillbom scan --include-catalogs --policy policy.yaml       # add marketplace-clone plugins; apply a policy
+.venv/bin/skillbom scan --no-home --project DIR --root DIR             # scan only given dirs
+.venv/bin/skillbom report bom.json -o report.html                     # HTML audit report (or scan --html FILE)
+.venv/bin/python scripts/validate.py [FILE ...]                       # validate examples (or files) against the schemas
+```
+
+Corpus study (results in `docs/research/corpus-2026-10.md`). The data lives in `.corpus/`, which is gitignored and about 18 GB:
+
+```sh
+.venv/bin/python scripts/corpus/collect.py    # repo list -> .corpus/sources.jsonl (GITHUB_TOKEN optional)
+.venv/bin/python scripts/corpus/fetch.py      # sparse partial clones, resumable; needs git >= 2.27 (GIT=/usr/bin/git default)
+.venv/bin/python scripts/corpus/analyze.py    # scan every fetched repo -> .corpus/results.json
+```
+
+`/usr/local/bin/git` on this machine is 2.12, too old for partial clones. That's why `fetch.py` defaults to Apple's `/usr/bin/git`. Re-run `analyze.py` after detector changes: it takes about 80 s and its `detectorGaps` section lists unparsed license values and unrecognized license files.
+
+`validate.py` picks the schema by path: files under `skill-license/` or named `skill-license.*` use the license schema, and everything else uses the BOM schema. `tests/test_scan.py` validates every scan it runs against the BOM schema, so a schema change that breaks scanner output fails the tests.
+
+## Scanner architecture
+
+The pipeline runs `cli.py` → `discover.py` → `bom.py`. `bom.py` calls `hashing.py`, `licenses.py` and `rules.py` for each candidate.
+
+- **`discover.py`** produces `Candidate`s, each carrying its kind, path, platform, `install_scope`, source info and a **`boundary`**: the highest directory whose LICENSE may be inherited (a marketplace clone root, a project root, a `--root`, or the component's own dir for installed plugins and synced skills). Plugins yield their nested `skills/*/` as child candidates with `parent` set.
+- **`licenses.py`** collects `Evidence` from every source, and `Detection.best` resolves it. Own evidence always beats inherited evidence (`INHERITED_SOURCES`), whatever the confidence. That ordering was a real bug found on real data: a plugin's proprietary LICENSE lost to its marketplace repo's Apache LICENSE.
+- **`spdx.py`** parses expressions into DNF, a list of choices where each choice is a set of ids that must all be complied with. Policy checks and grant checks work on these choices. `data/spdx-grants.yaml` maps SPDX ids to the license-file `grants` vocabulary, and also holds the accepted unmapped ids and aliases. An id that is in none of those lists makes an expression invalid.
+- **`report.py`** renders a BOM as one self-contained HTML file with no external assets, so it can be emailed or printed to PDF. The table is rendered server-side, and JS only adds filtering, sorting and tooltips. Findings are grouped per rule. Every BOM string passes through `html.escape`, because component names come from untrusted SKILL.md files. `spdx.category()` is shared with `scripts/corpus/analyze.py`.
+- **`bom.py`** dedupes components by `(kind, content hash)` and keeps the detection from the first occurrence. `bomRef` is `<kind>-<hash[:12]>`, which stays stable across scans. Paths under the home dir are written as `~`, and host ids are pseudonymous hashes.
+
+Real-world layouts the scanner handles, which are easy to get wrong:
+- `~/.claude/plugins/marketplaces/*` are full catalog clones, not installs. Installed plugins come from `installed_plugins.json`.
+- `~/.claude/skills/synced/<org>_<account>/` holds skills synced from claude.ai.
+- `license:` values are often free text, for example "Proprietary. LICENSE.txt has complete terms" or npm's "SEE LICENSE IN LICENSE". These are followed to the named file.
+
+## Private notes
+
+`notes/` is gitignored and may hold private product notes. Read them for context when they exist. Never commit them, and never copy their contents into tracked files: this repository is public.

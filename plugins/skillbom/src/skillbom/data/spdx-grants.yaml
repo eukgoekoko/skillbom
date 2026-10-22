@@ -1,0 +1,153 @@
+# SPDX license id -> grant vocabulary of the skill license file (docs/license-file.md).
+# This is a tooling summary, not legal advice: the license text always wins.
+#
+# copyleft: none | weak (file/library-level) | strong | network (AGPL-style)
+# `compose: redistributable` for copyleft licenses is subject to the combined
+# work being licensed compatibly; that check is separate from these grants.
+
+anchors:
+  permissive: &permissive
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: true}
+    obligations: [attribution, keep-license-file]
+    copyleft: none
+  public-domain: &public-domain
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: true}
+    obligations: []
+    copyleft: none
+  weak: &weak
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: true}
+    obligations: [keep-license-file, disclose-modifications]
+    copyleft: weak
+  strong: &strong
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: true}
+    obligations: [keep-license-file, disclose-modifications]
+    copyleft: strong
+  network: &network
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: true}
+    obligations: [keep-license-file, disclose-modifications]
+    copyleft: network
+
+licenses:
+  MIT: *permissive
+  ISC: *permissive
+  BSD-2-Clause: *permissive
+  BSD-3-Clause: *permissive
+  Apache-2.0: *permissive
+  Zlib: *permissive
+  UPL-1.0: *permissive
+  0BSD: *public-domain
+  Unlicense: *public-domain
+  CC0-1.0: *public-domain
+  CC-BY-4.0: *permissive
+  CC-BY-SA-4.0: *strong
+  CC-BY-ND-4.0:
+    grants: {internalUse: true, commercialUse: true, modify: false, redistribute: unmodified, compose: redistributable, serviceUse: true}
+    obligations: [attribution, keep-license-file]
+    copyleft: none
+  CC-BY-NC-4.0:
+    grants: {internalUse: true, commercialUse: false, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [attribution, keep-license-file]
+    copyleft: none
+  CC-BY-NC-SA-4.0:
+    grants: {internalUse: true, commercialUse: false, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [attribution, keep-license-file]
+    copyleft: strong
+  CC-BY-NC-ND-4.0:
+    grants: {internalUse: true, commercialUse: false, modify: false, redistribute: unmodified, compose: none, serviceUse: false}
+    obligations: [attribution, keep-license-file]
+    copyleft: none
+  MPL-2.0: *weak
+  LGPL-2.1-only: *weak
+  LGPL-2.1-or-later: *weak
+  LGPL-3.0-only: *weak
+  LGPL-3.0-or-later: *weak
+  GPL-2.0-only: *strong
+  GPL-2.0-or-later: *strong
+  GPL-3.0-only: *strong
+  GPL-3.0-or-later: *strong
+  AGPL-3.0-only: *network
+  AGPL-3.0-or-later: *network
+  SSPL-1.0: *network
+
+  # Source-available: usable at work, but with commercial or service restrictions.
+  PolyForm-Noncommercial-1.0.0:
+    grants: {internalUse: true, commercialUse: false, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [keep-license-file]
+    copyleft: none
+  PolyForm-Small-Business-1.0.0:  # commercial use only below a size threshold; treated as restricted
+    grants: {internalUse: true, commercialUse: false, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [keep-license-file]
+    copyleft: none
+  PolyForm-Shield-1.0.0:  # any use except competing with the licensor
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [keep-license-file]
+    copyleft: none
+  PolyForm-Internal-Use-1.0.0:
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: none, compose: internal-only, serviceUse: false}
+    obligations: [keep-license-file]
+    copyleft: none
+  BUSL-1.1:  # production use only per the Additional Use Grant; treated as restricted
+    grants: {internalUse: true, commercialUse: false, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [keep-license-file]
+    copyleft: none
+  Elastic-2.0: &no-service
+    grants: {internalUse: true, commercialUse: true, modify: true, redistribute: modified, compose: redistributable, serviceUse: false}
+    obligations: [keep-license-file]
+    copyleft: none
+  FSL-1.1-MIT: *no-service
+  FSL-1.1-ALv2: *no-service
+  LicenseRef-commons-clause: *no-service
+  LicenseRef-public-domain: *public-domain  # "Apache-2.0 + Commons Clause" etc.: no selling the software itself
+
+# Valid SPDX ids accepted in expressions but without a grants mapping yet.
+unmapped: [Artistic-2.0, BSL-1.0, EPL-2.0, EUPL-1.2, CC-BY-3.0, CC-BY-SA-3.0, WTFPL, MIT-0, OFL-1.1, PSF-2.0]
+
+# Deprecated SPDX ids and common free-text spellings.
+aliases:
+  GPL-2.0: GPL-2.0-only
+  GPL-2.0+: GPL-2.0-or-later
+  GPL-3.0: GPL-3.0-only
+  GPL-3.0+: GPL-3.0-or-later
+  LGPL-2.1: LGPL-2.1-only
+  LGPL-2.1+: LGPL-2.1-or-later
+  LGPL-3.0: LGPL-3.0-only
+  LGPL-3.0+: LGPL-3.0-or-later
+  AGPL-3.0: AGPL-3.0-only
+  AGPL-3.0+: AGPL-3.0-or-later
+  Apache 2.0: Apache-2.0
+  Apache License 2.0: Apache-2.0
+  Apache-2: Apache-2.0
+  MIT License: MIT
+  BSD: BSD-3-Clause
+
+# Free-text license names seen in `license:` fields, matched after lowercasing and
+# stripping a trailing "license"/"licence", a leading "the", and parentheticals.
+names:
+  mit: MIT
+  mit + commons clause: MIT AND LicenseRef-commons-clause
+  apache + commons clause: Apache-2.0 AND LicenseRef-commons-clause
+  apache 2: Apache-2.0
+  apache v2: Apache-2.0
+  apache version 2.0: Apache-2.0
+  bsd 3-clause: BSD-3-Clause
+  3-clause bsd: BSD-3-Clause
+  bsd 2-clause: BSD-2-Clause
+  2-clause bsd: BSD-2-Clause
+  gplv3: GPL-3.0-only
+  gpl v3: GPL-3.0-only
+  gplv2: GPL-2.0-only
+  gnu general public v3.0: GPL-3.0-only
+  gnu general public v2.0: GPL-2.0-only
+  gnu affero general public v3.0: AGPL-3.0-only
+  gnu lesser general public v3.0: LGPL-3.0-only
+  mozilla public 2.0: MPL-2.0
+  universal permissive, version 1.0: UPL-1.0
+  universal permissive 1.0: UPL-1.0
+  polyform noncommercial 1.0.0: PolyForm-Noncommercial-1.0.0
+  polyform shield 1.0.0: PolyForm-Shield-1.0.0
+  polyform internal use 1.0.0: PolyForm-Internal-Use-1.0.0
+  creative commons attribution 4.0: CC-BY-4.0
+  cc by 4.0: CC-BY-4.0
+  public domain: LicenseRef-public-domain
+  unlicensed: LicenseRef-proprietary   # npm convention: not licensed for use by others
+  all rights reserved: LicenseRef-proprietary

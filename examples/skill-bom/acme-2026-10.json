@@ -1,0 +1,170 @@
+{
+  "bomFormat": "SkillBOM",
+  "specVersion": "0.1",
+  "serialNumber": "urn:uuid:b82b30fb-50b3-4a4f-abd8-5f446e02d2da",
+  "metadata": {
+    "timestamp": "2026-10-22T21:00:00Z",
+    "tool": { "name": "skillbom", "version": "0.1.0" },
+    "scope": {
+      "organization": "ACME AG",
+      "hosts": [
+        { "id": "h-7f3a", "os": "darwin", "platforms": ["claude-code"], "roots": ["~/.claude", "/Library/Application Support/ClaudeCode"] },
+        { "id": "h-91c2", "os": "linux", "platforms": ["claude-code", "codex-cli"], "roots": ["~/.claude", "~/.codex"] }
+      ]
+    },
+    "policy": {
+      "id": "acme-skill-policy",
+      "version": "2026-09",
+      "allowedLicenses": ["MIT", "Apache-2.0", "BSD-3-Clause", "LicenseRef-*"],
+      "deniedLicenses": ["AGPL-3.0-only", "AGPL-3.0-or-later"]
+    }
+  },
+  "components": [
+    {
+      "bomRef": "c1",
+      "kind": "plugin",
+      "id": "acme/legal-pack",
+      "name": "ACME Legal Pack",
+      "version": "0.3.0",
+      "publisher": "ACME AG",
+      "source": { "type": "marketplace", "marketplace": "acme-internal" },
+      "contentHash": { "alg": "sha256", "value": "fc31a46aeed97a7a97f91f86d9ae52e179e2a51599ea701462074a6b2e628a74" },
+      "integrity": "match",
+      "license": {
+        "status": "declared",
+        "expression": "LicenseRef-acme-internal",
+        "evidence": [{ "source": "skill-license-file", "path": "skill-license.yaml", "expression": "LicenseRef-acme-internal", "confidence": 1 }]
+      },
+      "entitlement": { "status": "not-required" },
+      "installations": [
+        { "host": "h-7f3a", "platform": "claude-code", "path": "/Library/Application Support/ClaudeCode/plugins/legal-pack", "installScope": "managed", "enabled": true },
+        { "host": "h-91c2", "platform": "claude-code", "path": "~/.claude/plugins/cache/acme-internal/legal-pack", "installScope": "managed", "enabled": true }
+      ]
+    },
+    {
+      "bomRef": "c2",
+      "kind": "skill",
+      "id": "lexwerk/contract-review",
+      "name": "Contract Review (DE/EN)",
+      "version": "1.2.0",
+      "publisher": "Lexwerk GmbH",
+      "source": { "type": "local" },
+      "contentHash": { "alg": "sha256", "value": "f5f977461e598db5a43069b77f37dfd2442cec785bd02f51087341b2f4a7369a" },
+      "integrity": "modified",
+      "license": {
+        "status": "declared",
+        "expression": "LicenseRef-commercial-team",
+        "evidence": [{ "source": "skill-license-file", "path": "skills/contract-review/skill-license.yaml", "expression": "CC-BY-NC-4.0 OR LicenseRef-commercial-team OR LicenseRef-commercial-org", "confidence": 1 }]
+      },
+      "entitlement": { "status": "covered", "registryRef": "ent_01JB7Q3W9X", "offer": "LicenseRef-commercial-team" },
+      "installations": [
+        { "host": "h-7f3a", "platform": "claude-code", "path": "/Library/Application Support/ClaudeCode/plugins/legal-pack/skills/contract-review", "installScope": "plugin" },
+        { "host": "h-91c2", "platform": "claude-code", "path": "~/.claude/plugins/cache/acme-internal/legal-pack/skills/contract-review", "installScope": "plugin" }
+      ]
+    },
+    {
+      "bomRef": "c3",
+      "kind": "skill",
+      "id": "lexwerk/contract-review",
+      "name": "Contract Review (DE/EN)",
+      "version": "1.2.0",
+      "publisher": "Lexwerk GmbH",
+      "source": { "type": "registry", "url": "https://market.example/s/lexwerk/contract-review" },
+      "contentHash": { "alg": "sha256", "value": "8f46f87124f4cad3e3789e4e4a7b8c1caa0aa14d6ac6f34a8a9e3a16e4463688" },
+      "integrity": "match",
+      "license": {
+        "status": "declared",
+        "expression": "LicenseRef-commercial-team",
+        "evidence": [{ "source": "skill-license-file", "path": "skill-license.yaml", "expression": "CC-BY-NC-4.0 OR LicenseRef-commercial-team OR LicenseRef-commercial-org", "confidence": 1 }]
+      },
+      "entitlement": { "status": "insufficient", "registryRef": "ent_01JB7Q3W9X", "offer": "LicenseRef-commercial-team", "seatsLicensed": 10, "seatsInUse": 12, "expires": "2027-03-31" },
+      "installations": [
+        { "host": "h-91c2", "platform": "claude-code", "path": "~/.claude/skills/contract-review", "installScope": "user", "enabled": true }
+      ]
+    },
+    {
+      "bomRef": "c4",
+      "kind": "skill",
+      "id": "jdoe/pdf-tools",
+      "name": "PDF Tools",
+      "version": "2.0.1",
+      "publisher": "Jane Doe",
+      "source": { "type": "git", "url": "https://github.com/jdoe/agent-skills", "ref": "v2.0.1" },
+      "contentHash": { "alg": "sha256", "value": "686d45ea445faa295853e2ae32d26c1e659308cf407ef732095a44c54b6f9fc1" },
+      "integrity": "match",
+      "license": {
+        "status": "declared",
+        "expression": "MIT",
+        "evidence": [
+          { "source": "skill-license-file", "path": "skill-license.yaml", "expression": "MIT", "confidence": 1 },
+          { "source": "repo-license-file", "path": "LICENSE", "expression": "MIT", "confidence": 0.98 }
+        ]
+      },
+      "entitlement": { "status": "not-required" },
+      "installations": [
+        { "host": "h-7f3a", "platform": "claude-code", "path": "/Library/Application Support/ClaudeCode/plugins/legal-pack/skills/pdf-tools", "installScope": "plugin" },
+        { "host": "h-91c2", "platform": "codex-cli", "path": "~/.codex/skills/pdf-tools", "installScope": "user", "enabled": true }
+      ]
+    },
+    {
+      "bomRef": "c5",
+      "kind": "skill",
+      "name": "helper",
+      "source": { "type": "git", "url": "https://github.com/someone/dotfiles" },
+      "contentHash": { "alg": "sha256", "value": "e81d3b0e9d82feaaf5f6e55bdff24731d7eee08632ffa63801e6397290c5d20a" },
+      "integrity": "unverified",
+      "license": { "status": "unknown", "expression": "NOASSERTION" },
+      "entitlement": { "status": "unknown" },
+      "installations": [
+        { "host": "h-7f3a", "platform": "claude-code", "path": "~/projects/billing/.claude/skills/helper", "installScope": "project", "enabled": true }
+      ]
+    }
+  ],
+  "dependencies": [
+    { "ref": "c1", "dependsOn": ["c2"], "relation": "modified" },
+    { "ref": "c1", "dependsOn": ["c4"], "relation": "contains" },
+    { "ref": "c2", "dependsOn": ["c3"], "relation": "modified" }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "rule": "entitlement-insufficient",
+      "severity": "high",
+      "components": ["c2", "c3"],
+      "message": "Team license ent_01JB7Q3W9X covers 10 seats; 12 distinct users run lexwerk/contract-review.",
+      "remediation": "Buy 2 more seats or upgrade to LicenseRef-commercial-org."
+    },
+    {
+      "id": "F2",
+      "rule": "license-unknown",
+      "severity": "medium",
+      "components": ["c5"],
+      "message": "No license found for skill 'helper' copied from a personal dotfiles repository.",
+      "remediation": "Ask the author for a license, replace the skill, or remove it."
+    },
+    {
+      "id": "F3",
+      "rule": "integrity-modified",
+      "severity": "info",
+      "components": ["c2"],
+      "message": "Modified copy of lexwerk/contract-review inside acme/legal-pack. Allowed: offer grants modify=true, compose=internal-only, and the plugin is not redistributed."
+    },
+    {
+      "id": "F4",
+      "rule": "obligation-unmet",
+      "severity": "low",
+      "components": ["c4"],
+      "message": "MIT requires the copyright notice to be kept; acme/legal-pack ships pdf-tools without its LICENSE file.",
+      "remediation": "Copy LICENSE into the bundled skill directory."
+    }
+  ],
+  "summary": {
+    "components": 5,
+    "installations": 8,
+    "byKind": { "plugin": 1, "skill": 4 },
+    "byLicense": { "LicenseRef-acme-internal": 1, "LicenseRef-commercial-team": 2, "MIT": 1, "NOASSERTION": 1 },
+    "byLicenseStatus": { "declared": 4, "inferred": 0, "unknown": 1 },
+    "byEntitlement": { "not-required": 2, "covered": 1, "insufficient": 1, "unknown": 1 },
+    "findingsBySeverity": { "critical": 0, "high": 1, "medium": 1, "low": 1, "info": 1 }
+  }
+}

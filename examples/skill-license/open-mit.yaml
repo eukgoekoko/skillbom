@@ -1,0 +1,22 @@
+# Free skill under a standard open-source license.
+specVersion: "0.1"
+subject:
+  kind: skill
+  id: jdoe/pdf-tools
+  name: PDF Tools
+  version: 2.0.1
+  source:
+    repository: https://github.com/jdoe/agent-skills
+    ref: v2.0.1
+    path: skills/pdf-tools
+  contentHash:
+    alg: sha256
+    value: 686d45ea445faa295853e2ae32d26c1e659308cf407ef732095a44c54b6f9fc1
+  platforms: [claude-code, codex-cli, cursor]
+licensors:
+  - name: Jane Doe
+    role: author
+license:
+  expression: MIT
+  text: LICENSE
+attribution: "PDF Tools (c) 2026 Jane Doe"

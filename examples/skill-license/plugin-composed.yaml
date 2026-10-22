@@ -1,0 +1,35 @@
+# Plugin assembled from third-party skills; `includes` drives the composition check.
+specVersion: "0.1"
+subject:
+  kind: plugin
+  id: acme/legal-pack
+  name: ACME Legal Pack
+  version: 0.3.0
+  contentHash:
+    alg: sha256
+    value: fc31a46aeed97a7a97f91f86d9ae52e179e2a51599ea701462074a6b2e628a74
+licensors:
+  - name: ACME AG
+    role: publisher
+license:
+  expression: LicenseRef-acme-internal
+  text: LICENSE.txt
+  offers:
+    - id: LicenseRef-acme-internal
+      title: ACME internal use only
+      scope: { licensee: organization, affiliatesIncluded: true }
+      term: { type: perpetual }
+      grants: { internalUse: true, commercialUse: true, modify: true, redistribute: none, compose: internal-only }
+includes:
+  - id: lexwerk/contract-review
+    version: 1.2.0
+    license: LicenseRef-commercial-team
+    relation: modified
+    entitlementRef: ent_01JB7Q3W9X
+    contentHash:
+      alg: sha256
+      value: f5f977461e598db5a43069b77f37dfd2442cec785bd02f51087341b2f4a7369a
+  - id: jdoe/pdf-tools
+    version: 2.0.1
+    license: MIT
+    relation: bundled

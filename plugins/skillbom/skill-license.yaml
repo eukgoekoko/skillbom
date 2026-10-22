@@ -1,0 +1,13 @@
+# The plugin's own license, in the format this project defines (docs/license-file.md).
+specVersion: "0.1"
+subject:
+  kind: plugin
+  id: eukgoekoko/skillbom
+  name: skillbom
+  version: 0.1.0
+  description: License audit for installed agent skills and plugins.
+  homepage: https://github.com/eukgoekoko/skillbom
+  platforms: [claude-code]
+license:
+  expression: Apache-2.0
+  text: LICENSE

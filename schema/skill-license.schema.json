@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skill-license.dev/schema/skill-license/0.1.json",
+  "title": "Skill License File",
+  "description": "Machine-readable license terms for an agent skill (SKILL.md) or plugin. Lives as `skill-license.yaml` (or .json) next to SKILL.md / plugin manifest. Draft 0.1.",
+  "type": "object",
+  "required": ["specVersion", "subject", "license"],
+  "additionalProperties": false,
+  "properties": {
+    "specVersion": { "const": "0.1" },
+
+    "subject": {
+      "description": "What this license file covers.",
+      "type": "object",
+      "required": ["kind", "id", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["skill", "plugin", "bundle"] },
+        "id": {
+          "description": "Globally unique, stable identifier: <publisher>/<name>.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9._-]*$"
+        },
+        "name": { "type": "string" },
+        "version": { "$ref": "#/$defs/semver" },
+        "description": { "type": "string" },
+        "homepage": { "type": "string", "format": "uri" },
+        "source": {
+          "description": "Canonical location of the original.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "repository": { "type": "string", "format": "uri" },
+            "ref": { "type": "string", "description": "Tag or commit." },
+            "path": { "type": "string", "description": "Path to the skill/plugin directory inside the repository." }
+          }
+        },
+        "contentHash": {
+          "description": "Hash of the canonical content tree, so scanners can tell an original from a modified copy. See docs/license-file.md for the hashing procedure.",
+          "$ref": "#/$defs/hash"
+        },
+        "platforms": {
+          "description": "Agent runtimes the subject is intended for. Informational.",
+          "type": "array",
+          "items": { "type": "string", "examples": ["claude-code", "claude-ai", "codex-cli", "cursor", "gemini-cli"] },
+          "uniqueItems": true
+        }
+      }
+    },
+
+    "licensors": {
+      "description": "Rights holders.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "url": { "type": "string", "format": "uri" },
+          "role": { "enum": ["author", "publisher", "contributor"] }
+        }
+      }
+    },
+
+    "license": {
+      "type": "object",
+      "required": ["expression"],
+      "additionalProperties": false,
+      "properties": {
+        "expression": {
+          "description": "SPDX license expression. Commercial offers use LicenseRef- identifiers defined in `offers`, e.g. \"MIT\", \"LicenseRef-commercial-team\", \"AGPL-3.0-only OR LicenseRef-commercial-org\".",
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "description": "Relative path or URL of the full human-readable license text. Required for LicenseRef- identifiers.",
+          "type": "string"
+        },
+        "offers": {
+          "description": "Definitions of every LicenseRef- identifier used in `expression`.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/offer" }
+        }
+      }
+    },
+
+    "includes": {
+      "description": "Third-party skills/plugins bundled in or derived from by this subject. Used for composition compatibility checks.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "version", "license", "relation"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "version": { "type": "string" },
+          "license": { "type": "string", "description": "SPDX expression of the included component." },
+          "relation": {
+            "enum": ["bundled", "modified", "derived", "references"],
+            "description": "bundled = shipped unmodified; modified = shipped with changes; derived = rewritten/adapted from; references = invoked but not shipped."
+          },
+          "entitlementRef": { "type": "string", "description": "Proof that the bundler holds a right to redistribute (registry entitlement id)." },
+          "contentHash": { "$ref": "#/$defs/hash" }
+        }
+      }
+    },
+
+    "attribution": {
+      "type": "string",
+      "description": "Attribution notice that must be preserved, if any."
+    }
+  },
+
+  "$defs": {
+    "semver": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "hash": {
+      "type": "object",
+      "required": ["alg", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "alg": { "enum": ["sha256", "sha512"] },
+        "value": { "type": "string", "pattern": "^[0-9a-f]{64,128}$" }
+      }
+    },
+    "offer": {
+      "description": "A commercial license variant. `id` is the LicenseRef- identifier referenced from the SPDX expression.",
+      "type": "object",
+      "required": ["id", "scope", "term", "grants"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^LicenseRef-[A-Za-z0-9.-]+$" },
+        "title": { "type": "string" },
+        "scope": {
+          "description": "Who may use the subject under this offer.",
+          "type": "object",
+          "required": ["licensee"],
+          "additionalProperties": false,
+          "properties": {
+            "licensee": { "enum": ["individual", "team", "organization", "enterprise"] },
+            "seats": { "type": "integer", "minimum": 1, "description": "Maximum number of users; omit for unlimited within the licensee." },
+            "affiliatesIncluded": { "type": "boolean", "default": false },
+            "territory": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z]{2}$" }, "description": "ISO 3166-1 alpha-2 codes; omit for worldwide." }
+          }
+        },
+        "term": {
+          "type": "object",
+          "required": ["type"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "enum": ["perpetual", "subscription", "fixed"] },
+            "durationDays": { "type": "integer", "minimum": 1 },
+            "updatesIncludedDays": { "type": "integer", "minimum": 0, "description": "For perpetual licenses: how long new versions are covered." }
+          }
+        },
+        "grants": {
+          "description": "Permissions. Anything not granted is denied.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "internalUse": { "type": "boolean", "default": true },
+            "commercialUse": { "type": "boolean", "default": true, "description": "Use in work that generates revenue for the licensee." },
+            "modify": { "type": "boolean", "default": false },
+            "redistribute": { "enum": ["none", "unmodified", "modified"], "default": "none" },
+            "compose": {
+              "description": "May be bundled into the licensee's own plugins/bundles.",
+              "enum": ["none", "internal-only", "redistributable"],
+              "default": "none"
+            },
+            "serviceUse": { "type": "boolean", "default": false, "description": "May power a hosted service offered to third parties." }
+          }
+        },
+        "obligations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["attribution", "keep-license-file", "disclose-modifications", "report-usage"] }
+        },
+        "price": {
+          "description": "Informational list price; the authoritative price lives in the marketplace.",
+          "type": "object",
+          "required": ["amount", "currency"],
+          "additionalProperties": false,
+          "properties": {
+            "amount": { "type": "number", "minimum": 0 },
+            "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+            "per": { "enum": ["license", "seat", "month-seat", "year-seat", "month", "year"] }
+          }
+        },
+        "purchaseUrl": { "type": "string", "format": "uri" },
+        "termsUrl": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

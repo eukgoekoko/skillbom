@@ -1,0 +1,16 @@
+{
+  "name": "skillbom",
+  "owner": {
+    "name": "eukgoekoko"
+  },
+  "description": "License compliance tooling for agent skills and plugins.",
+  "plugins": [
+    {
+      "name": "skillbom",
+      "source": "./plugins/skillbom",
+      "description": "License audit for installed agent skills and plugins (Skill BOM + HTML report).",
+      "version": "0.1.0",
+      "category": "security"
+    }
+  ]
+}

@@ -1,0 +1,543 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skill-license.dev/schema/skill-bom/0.1.json",
+  "title": "Skill BOM",
+  "description": "Inventory and license report produced by the scanner for the skills and plugins installed across an organization. Draft 0.1. Structure is modeled on CycloneDX (components + dependencies) so it can later be exported to CycloneDX/SPDX.",
+  "type": "object",
+  "required": [
+    "bomFormat",
+    "specVersion",
+    "serialNumber",
+    "metadata",
+    "components",
+    "summary"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "bomFormat": {
+      "const": "SkillBOM"
+    },
+    "specVersion": {
+      "const": "0.1"
+    },
+    "serialNumber": {
+      "type": "string",
+      "pattern": "^urn:uuid:[0-9a-f-]{36}$"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "timestamp",
+        "tool",
+        "scope"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tool": {
+          "type": "object",
+          "required": [
+            "name",
+            "version"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "scope": {
+          "description": "What was scanned.",
+          "type": "object",
+          "required": [
+            "hosts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "organization": {
+              "type": "string"
+            },
+            "hosts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Host or user identifier (may be pseudonymized)."
+                  },
+                  "os": {
+                    "type": "string"
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Agent runtimes found on the host."
+                  },
+                  "roots": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Directories scanned."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "policy": {
+          "description": "Organization policy the findings were evaluated against.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "allowedLicenses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "deniedLicenses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/component"
+      }
+    },
+    "dependencies": {
+      "description": "Containment/derivation edges, e.g. a plugin containing skills.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ref",
+          "dependsOn"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "type": "string"
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relation": {
+            "enum": [
+              "contains",
+              "modified",
+              "derived",
+              "references"
+            ]
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "components",
+        "byLicenseStatus",
+        "findingsBySeverity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "installations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "byKind": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "byLicense": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Count per SPDX expression; \"NOASSERTION\" for unknown."
+        },
+        "byLicenseStatus": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "declared": {
+              "type": "integer"
+            },
+            "inferred": {
+              "type": "integer"
+            },
+            "unknown": {
+              "type": "integer"
+            }
+          }
+        },
+        "byEntitlement": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "findingsBySeverity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "critical": {
+              "type": "integer"
+            },
+            "high": {
+              "type": "integer"
+            },
+            "medium": {
+              "type": "integer"
+            },
+            "low": {
+              "type": "integer"
+            },
+            "info": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hash": {
+      "type": "object",
+      "required": [
+        "alg",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "alg": {
+          "enum": [
+            "sha256",
+            "sha512"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64,128}$"
+        }
+      }
+    },
+    "component": {
+      "description": "One distinct skill/plugin version (deduplicated by content hash). Each place it is installed is listed under `installations`.",
+      "type": "object",
+      "required": [
+        "bomRef",
+        "kind",
+        "name",
+        "source",
+        "contentHash",
+        "license",
+        "installations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bomRef": {
+          "type": "string",
+          "description": "Identifier unique within this BOM."
+        },
+        "kind": {
+          "enum": [
+            "plugin",
+            "skill",
+            "command",
+            "agent",
+            "hook",
+            "mcp-server",
+            "marketplace"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "description": "<publisher>/<name> from the license file or manifest, if known."
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "enum": [
+                "marketplace",
+                "git",
+                "registry",
+                "local",
+                "unknown"
+              ]
+            },
+            "marketplace": {
+              "type": "string",
+              "description": "Marketplace name, e.g. claude-plugins-official."
+            },
+            "url": {
+              "type": "string"
+            },
+            "ref": {
+              "type": "string"
+            }
+          }
+        },
+        "contentHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "integrity": {
+          "description": "Comparison of contentHash with the hash declared by the license file / upstream.",
+          "enum": [
+            "match",
+            "modified",
+            "unverified"
+          ]
+        },
+        "license": {
+          "type": "object",
+          "required": [
+            "status",
+            "expression"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "declared",
+                "inferred",
+                "unknown"
+              ],
+              "description": "declared = from a skill-license file; inferred = from other evidence; unknown = nothing found."
+            },
+            "expression": {
+              "type": "string",
+              "description": "SPDX expression, or NOASSERTION."
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "source": {
+                    "enum": [
+                      "skill-license-file",
+                      "plugin-manifest",
+                      "skill-frontmatter",
+                      "repo-license-file",
+                      "marketplace-metadata",
+                      "text-match"
+                    ]
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "expression": {
+                    "type": "string"
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "Raw declared text when it isn't a valid SPDX expression."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "entitlement": {
+          "description": "Whether the organization holds a license that covers its use. Only meaningful for non-open licenses.",
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "not-required",
+                "covered",
+                "insufficient",
+                "missing",
+                "unknown"
+              ]
+            },
+            "registryRef": {
+              "type": "string",
+              "description": "Entitlement id in the purchase registry."
+            },
+            "offer": {
+              "type": "string",
+              "description": "LicenseRef- id of the offer held."
+            },
+            "seatsLicensed": {
+              "type": "integer"
+            },
+            "seatsInUse": {
+              "type": "integer"
+            },
+            "expires": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "installations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "host",
+              "path",
+              "installScope"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "host": {
+                "type": "string",
+                "description": "Matches metadata.scope.hosts[].id."
+              },
+              "platform": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "installScope": {
+                "enum": [
+                  "managed",
+                  "user",
+                  "project",
+                  "plugin",
+                  "local",
+                  "catalog"
+                ],
+                "description": "catalog = present in a marketplace clone but not installed."
+              },
+              "enabled": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "id",
+        "rule",
+        "severity",
+        "components",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "rule": {
+          "description": "Rule identifier; see docs/skill-bom.md for the rule catalog.",
+          "type": "string",
+          "examples": [
+            "license-unknown",
+            "license-invalid",
+            "license-denied",
+            "license-conflict",
+            "commercial-use-restricted",
+            "entitlement-missing",
+            "entitlement-insufficient",
+            "entitlement-expired",
+            "integrity-modified",
+            "composition-incompatible",
+            "obligation-unmet"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "bomRefs involved."
+        },
+        "message": {
+          "type": "string"
+        },
+        "remediation": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
