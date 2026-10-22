@@ -1,9 +1,9 @@
 {
   "bomFormat": "SkillBOM",
   "specVersion": "0.1",
-  "serialNumber": "urn:uuid:57623211-13f2-49d3-b8a6-79525bcae22c",
+  "serialNumber": "urn:uuid:7fc8dbe1-7f23-415d-a7b6-c76ef4855c33",
   "metadata": {
-    "timestamp": "2026-10-22T23:38:15Z",
+    "timestamp": "2026-10-22T23:49:08Z",
     "tool": {
       "name": "skillbom",
       "version": "0.1.0"
@@ -44,9 +44,9 @@
       ]
     },
     "mergedFrom": [
-      "urn:uuid:d275f79f-9624-4c4b-aa63-ee39d1fbfaab",
-      "urn:uuid:370e7ae7-6ff4-4f46-b5c1-e9b6637eed42",
-      "urn:uuid:5eaa0ebc-40b0-4773-9912-3fef8ff689a4"
+      "urn:uuid:7d1fb6e8-ab92-430e-a673-f68b9ae2da2b",
+      "urn:uuid:b0259439-33cc-4e88-af0e-9666379f9e5f",
+      "urn:uuid:28d1f401-c198-4c9e-b2e8-3dc9b0b180db"
     ],
     "policy": {
       "id": "acme-skill-policy",

@@ -189,6 +189,8 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px;margin-top:4px
 .path{font:11px ui-monospace,Menlo,monospace;color:var(--muted);word-break:break-all}
 #tip{position:fixed;pointer-events:none;background:var(--text);color:var(--surface);padding:5px 9px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .1s}
 footer{margin-top:48px;color:var(--muted);font-size:12px}
+.sig{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text-2);margin-right:8px}
+::selection{background:#b7d3f6;color:#0b0b0b}
 @media (max-width:640px){.bar-row{grid-template-columns:110px 1fr 70px}}
 @media print{
 :root,:root:not([data-theme="light"]),:root[data-theme="dark"]{--surface:#ffffff;--panel:#ffffff;--border:#d9d7d0;
@@ -290,6 +292,6 @@ def render(bom: dict, title: str | None = None) -> str:
 <h2>License categories</h2><div class="panel">{_category_chart(cats, total)}
 <p class="muted small">Category of the most permissive license choice available. “Inferred” licenses come from manifests, frontmatter or LICENSE texts rather than a skill-license file; the inventory shows the evidence for each.</p></div>
 <h2>Inventory</h2>{_inventory(bom, by_ref)}
-<footer>Generated from Skill BOM {_e(bom["specVersion"])}. License categories are a summary of the license texts, not legal advice.</footer>
+<footer><span class="sig">✓ skillbom — every skill accounted for.</span> Generated from Skill BOM {_e(bom["specVersion"])}. License categories are a summary of the license texts, not legal advice.</footer>
 </main><div id="tip" role="tooltip"></div><script>{JS}</script></body></html>
 """

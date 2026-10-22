@@ -1,6 +1,8 @@
+<p align="center"><img src="docs/assets/icon.png" alt="" width="88" height="88"></p>
+
 <h1 align="center">skillbom</h1>
 
-<p align="center"><strong>Know what your AI agent skills are licensed under.</strong></p>
+<p align="center"><strong>Know what your AI agent skills are licensed under.</strong><br><sub><code>every skill accounted for.</code></sub></p>
 
 <p align="center">
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2a78d6"></a>
