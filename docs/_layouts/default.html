@@ -54,6 +54,22 @@
     const w = document.createElement('div'); w.className = 'table-wrap';
     t.parentNode.insertBefore(w, t); w.appendChild(t);
   });
+  // Hover/focus tooltips for chart rows (data-tip).
+  const tips = main.querySelectorAll('[data-tip]');
+  if (tips.length) {
+    const tip = document.createElement('div'); tip.id = 'tip'; tip.setAttribute('role', 'tooltip');
+    document.body.appendChild(tip);
+    const show = (el, e) => {
+      tip.textContent = el.dataset.tip; tip.style.opacity = 1;
+      const r = el.getBoundingClientRect(), x = e && e.clientX ? e.clientX : r.left + r.width / 2;
+      tip.style.left = Math.min(x + 12, innerWidth - tip.offsetWidth - 8) + 'px';
+      tip.style.top = ((e && e.clientY) ? e.clientY + 16 : r.bottom + 6) + 'px';
+    };
+    tips.forEach(el => {
+      el.addEventListener('mousemove', e => show(el, e)); el.addEventListener('focus', () => show(el));
+      el.addEventListener('mouseleave', () => tip.style.opacity = 0); el.addEventListener('blur', () => tip.style.opacity = 0);
+    });
+  }
   const heads = [...main.querySelectorAll('h2[id], h3[id]')];
   heads.forEach(h => {
     const a = document.createElement('a');

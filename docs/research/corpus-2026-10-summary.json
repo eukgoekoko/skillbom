@@ -1,0 +1,119 @@
+{
+  "study": "License landscape of public agent skills, October 2026",
+  "url": "https://eukgoekoko.github.io/skillbom/research/corpus-2026-10.html",
+  "repos": {
+    "scanned": 1495,
+    "withSkills": 1211,
+    "errors": 0,
+    "withRootLicensePct": 92.5
+  },
+  "skills": 62704,
+  "plugins": 3578,
+  "licenseSource": {
+    "own": {
+      "count": 10167,
+      "pct": 16.2
+    },
+    "parentManifest": {
+      "count": 35718,
+      "pct": 57.0
+    },
+    "repoLicenseFile": {
+      "count": 15254,
+      "pct": 24.3
+    },
+    "none": {
+      "count": 1565,
+      "pct": 2.5
+    }
+  },
+  "skillCategories": {
+    "permissive": [
+      57558,
+      91.8
+    ],
+    "none": [
+      1565,
+      2.5
+    ],
+    "other": [
+      1226,
+      2.0
+    ],
+    "copyleft": [
+      1154,
+      1.8
+    ],
+    "non-commercial": [
+      668,
+      1.1
+    ],
+    "source-available": [
+      205,
+      0.3
+    ],
+    "proprietary": [
+      169,
+      0.3
+    ],
+    "custom": [
+      159,
+      0.3
+    ]
+  },
+  "byRepo": {
+    "repos": 1211,
+    "medianSkills": 5,
+    "anyUnlicensedPct": 5.2,
+    "anyNonCommercialPct": 1.8,
+    "anySourceAvailablePct": 0.8,
+    "anyCopyleftPct": 4.1,
+    "anyProprietaryPct": 2.2,
+    "anyCustomPct": 0.8,
+    "allSkillsOwnLicensePct": 22.5
+  },
+  "byRepoOfficialMarketplace": {
+    "repos": 195,
+    "medianSkills": 8,
+    "anyUnlicensedPct": 4.1,
+    "anyNonCommercialPct": 0.5,
+    "anySourceAvailablePct": 0.0,
+    "anyCopyleftPct": 1.0,
+    "anyProprietaryPct": 2.1,
+    "anyCustomPct": 2.1,
+    "allSkillsOwnLicensePct": 15.9
+  },
+  "frontmatterLicensePct": 15.7,
+  "anthropicProprietaryCopies": {
+    "repos": 12,
+    "copies": 47
+  },
+  "accuracy": {
+    "training": {
+      "n": 200,
+      "ambiguous": 4,
+      "scanner": "before the accuracy fixes",
+      "licenseAccuracy": 94.5,
+      "licenseAccuracyUnambiguous": 96.4,
+      "categoryAccuracy": 97.0,
+      "ownAgreement": 99.5,
+      "noLicense": {
+        "precision": 81.8,
+        "recall": 100.0
+      }
+    },
+    "holdout": {
+      "scanner": "after the accuracy fixes",
+      "n": 100,
+      "ambiguous": 4,
+      "licenseAccuracy": 98.0,
+      "licenseAccuracyUnambiguous": 100.0,
+      "categoryAccuracy": 100.0,
+      "ownAgreement": 100.0,
+      "noLicense": {
+        "precision": 100.0,
+        "recall": 100.0
+      }
+    }
+  }
+}
