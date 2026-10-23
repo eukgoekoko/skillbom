@@ -110,6 +110,11 @@ The specs are draft 0.1 and the scanner is a prototype. On a held-out sample of 
 
 License categories summarize license texts. They are not legal advice.
 
+## Contact
+
+- **Companies:** we're looking for design partners for a free organization-wide skill license audit; see [For teams](docs/teams.md#become-a-design-partner) or write to [pilots@skillbom.org](mailto:pilots@skillbom.org).
+- **Everything else:** [hello@skillbom.org](mailto:hello@skillbom.org), or [open an issue](https://github.com/eukgoekoko/skillbom/issues).
+
 ## License
 
 [Apache-2.0](LICENSE)

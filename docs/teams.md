@@ -2,7 +2,7 @@
 
 **Audience:** engineering managers, IT, legal and compliance teams who want to know which AI agent skills are in use across the company, and whether they may be used at work.
 
-If your engineers use coding agents such as Claude Code or Codex, skills and plugins are already on their machines. A [scan of 62,704 public skills](research/corpus-2026-10.md) found that 81% carry no license of their own, and that hundreds don't permit commercial use. This page describes how to get an organization-wide answer in an afternoon.
+If your engineers use coding agents such as Claude Code or Codex, skills and plugins are already on their machines. A [scan of 62,704 public skills](research/corpus-2026-10.md) found that 81% carry no license of their own, and that hundreds don't permit commercial use. This page describes how to get an organization-wide answer in an afternoon. If you'd like help with it, [become a design partner](#become-a-design-partner).
 
 ## How it works
 
@@ -104,6 +104,19 @@ Being explicit, so there are no surprises in a rollout:
 - **Two runtimes for now:** Claude Code and Codex skill locations, plus any folder you point it at.
 - **Not legal advice.** License categories summarize license texts. For decisions with real consequences, legal should read the license itself, which the report links to.
 
+## Become a design partner
+
+We're looking for a few companies to run skillbom with us while the paid features (purchase records, seat counting, ongoing monitoring) take shape.
+
+| | |
+|---|---|
+| **You get** | A free organization-wide skill license audit. We help you write the policy and set up the scan, merge the results, and walk your team through the findings in a one-hour readout. You also get a direct say in what we build next. |
+| **We ask for** | Two or three feedback calls over six to eight weeks, and permission to describe the pilot anonymously. |
+| **Effort on your side** | A policy discussion, a scan script in your device management, and the readout meeting. |
+| **Your data** | Scan results stay with you. We only see what you choose to share, and we're happy to sign an NDA. |
+
+Write to **[pilots@skillbom.org](mailto:pilots@skillbom.org?subject=skillbom%20design%20partner)** with a line about your company and how your engineers use coding agents.
+
 ## Questions
 
-[Open an issue](https://github.com/eukgoekoko/skillbom/issues) on GitHub for anything about rolling skillbom out. Feedback from real rollouts is especially welcome.
+Write to [hello@skillbom.org](mailto:hello@skillbom.org), or [open an issue](https://github.com/eukgoekoko/skillbom/issues) on GitHub for anything about rolling skillbom out. Feedback from real rollouts is especially welcome.

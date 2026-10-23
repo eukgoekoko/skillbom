@@ -9,4 +9,4 @@ skillbom (the command-line tool and the Claude Code plugin) runs entirely on you
 - **Claude.** When you use the plugin inside Claude Code, Claude reads the scanner's summary to answer you, as with any tool output in your session; that is governed by your agreement with Anthropic.
 - **This website** is a static page on GitHub Pages and sets no cookies of its own. GitHub's privacy statement applies to the hosting.
 
-Questions: [open an issue](https://github.com/eukgoekoko/skillbom/issues).
+Questions: write to [hello@skillbom.org](mailto:hello@skillbom.org) or [open an issue](https://github.com/eukgoekoko/skillbom/issues).
