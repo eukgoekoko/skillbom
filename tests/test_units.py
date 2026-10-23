@@ -127,3 +127,12 @@ def test_title_beats_later_mentions():
     # Accuracy run, S059: an MIT file mentioning Apache-licensed third-party code.
     text = MIT.replace("MIT License", "MIT License\n") + "\n\nThird-party: Apache License Version 2.0 applies to vendor/."
     assert textmatch.identify("MIT License\n\n" + text)[0] == "MIT"
+
+
+def test_content_hash_spec_vector(tmp_path):
+    # The test vector published in docs/license-file.md ("Content hash").
+    (tmp_path / "SKILL.md").write_bytes(b"---\nname: hello\ndescription: Say hello.\n---\n\nSay hello.\n")
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts/greet.py").write_bytes(b"print('hello')\n")
+    (tmp_path / "skill-license.yaml").write_bytes(b"not part of the hash\n")
+    assert content_hash(tmp_path) == "a903ec8aa19fa69ad1fc36921aa599b7b924409ee0d8b60d2a07cc09719c74e2"

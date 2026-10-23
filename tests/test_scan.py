@@ -295,3 +295,28 @@ def test_parent_manifest_and_body_license(tmp_path):
     assert by_name(bom, "only-manifest")["license"]["expression"] == "MIT"
     body = by_name(bom, "body")["license"]
     assert body["expression"] == "Apache-2.0" and body["evidence"][0]["source"] == "skill-body"
+
+
+def test_spec_examples_are_valid():
+    """Every YAML example in docs/license-file.md validates against the schema."""
+    import re
+    import yaml
+    schema = json.loads((ROOT / "schema/skill-license.schema.json").read_text())
+    blocks = re.findall(r"```yaml\n(.*?)```", (ROOT / "docs/license-file.md").read_text(), re.S)
+    assert len(blocks) >= 2
+    for block in blocks:
+        errors = list(Draft202012Validator(schema).iter_errors(yaml.safe_load(block)))
+        assert not errors, errors
+
+
+def test_subscription_requires_duration():
+    import yaml
+    schema = json.loads((ROOT / "schema/skill-license.schema.json").read_text())
+    doc = yaml.safe_load("""specVersion: "0.1"
+subject: {kind: skill, id: a/b, version: 1.0.0}
+license:
+  expression: LicenseRef-x
+  text: LICENSE
+  offers: [{id: LicenseRef-x, scope: {licensee: team}, term: {type: subscription}, grants: {}}]
+""")
+    assert list(Draft202012Validator(schema).iter_errors(doc))
