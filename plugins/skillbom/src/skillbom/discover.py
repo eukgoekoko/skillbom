@@ -129,9 +129,10 @@ def _entry_source(marketplace: str, entry: dict) -> dict:
     return out
 
 
-def _installed_plugins(plugins_dir: Path, settings: dict) -> list[Candidate]:
+def _installed_plugins(plugins_dir: Path) -> list[Candidate]:
+    # Deliberately doesn't read settings.json (to tell enabled from disabled plugins):
+    # that file can hold credentials, and the scanner reads nothing it doesn't need.
     marketplaces = _marketplaces(plugins_dir)
-    enabled = settings.get("enabledPlugins") or {}
     records = read_json(plugins_dir / "installed_plugins.json").get("plugins") or {}
     out: list[Candidate] = []
     for key, recs in records.items():
@@ -148,7 +149,6 @@ def _installed_plugins(plugins_dir: Path, settings: dict) -> list[Candidate]:
                 install_scope=scope if scope in ("managed", "user", "project", "local") else "user",
                 boundary=path, source=_entry_source(mkt, entry))
             cands[0].marketplace_entry = entry
-            cands[0].enabled = bool(enabled.get(key)) if key in enabled else None
             out += cands
     if not records:
         # No install registry: fall back to whatever is in the plugin cache.
@@ -192,7 +192,7 @@ def claude_code(home: Path, include_catalogs: bool = False) -> list[Candidate]:
                               source={"type": "registry", "url": "https://claude.ai"}))
     plugins = base / "plugins"
     if plugins.is_dir():
-        out += _installed_plugins(plugins, read_json(base / "settings.json"))
+        out += _installed_plugins(plugins)
         if include_catalogs:
             out += _catalogs(plugins)
     return out

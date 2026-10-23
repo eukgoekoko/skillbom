@@ -4,10 +4,15 @@ subject:
   kind: plugin
   id: eukgoekoko/skillbom
   name: skillbom
-  version: 0.1.0
+  version: 0.1.1
   description: License audit for installed agent skills and plugins.
   homepage: https://github.com/eukgoekoko/skillbom
   platforms: [claude-code]
 license:
   expression: Apache-2.0
   text: LICENSE
+includes:
+  - id: yaml/pyyaml
+    version: 6.0.3
+    license: MIT
+    relation: bundled

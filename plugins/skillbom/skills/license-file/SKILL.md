@@ -7,7 +7,7 @@ description: Create or update a skill-license.yaml for a skill or plugin the use
 
 Write a `skill-license.yaml` ([specification](https://eukgoekoko.github.io/skillbom/license-file.html)) next to the skill's `SKILL.md`, or next to a plugin's `.claude-plugin/plugin.json`.
 
-The launcher is `bin/skillbom`, two directories above this skill's base directory: `<base>/../../bin/skillbom`. Use its absolute path.
+The launcher is `scripts/skillbom`, two directories above this skill's base directory: `<base>/../../scripts/skillbom`. Use its absolute path.
 
 ## Steps
 
@@ -15,7 +15,7 @@ The launcher is `bin/skillbom`, two directories above this skill's base director
 2. **Preview** without writing anything:
 
    ```sh
-   "<base>/../../bin/skillbom" init "<folder>" --dry-run
+   "<base>/../../scripts/skillbom" init "<folder>" --dry-run
    ```
 
    `init` fills in the id (`publisher/name`), version and license from the frontmatter, manifests, LICENSE files and the git remote. Its notes (on stderr) say where each value came from.
