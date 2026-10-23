@@ -53,12 +53,14 @@ Every source consulted is recorded as `evidence`, with a confidence:
 **Parent directories** are searched from the nearest upward, up to the scan boundary (the marketplace clone, project root or scan root). The first level that declares anything wins, and at that level a manifest is preferred over a license file. A plugin that declares MIT inside an AGPL repository is therefore MIT.
 
 **License texts** are identified in this order:
+
 1. GNU licenses by their heading. The GPL-3.0 text mentions the AGPL in its section 13, so phrase matching would misfire. `-or-later` is reported only when an "any later version" notice appears before the license's own "How to Apply" appendix.
 2. A recognized title line ("MIT License", "PolyForm Noncommercial License 1.0.0"): 0.9 when the license's key phrases confirm it, 0.6 otherwise (pointer texts such as "MIT License – see repository root LICENSE").
 3. Key phrases anywhere in the text.
 4. Otherwise `LicenseRef-custom` at 0.3: a license exists, but it isn't one the scanner knows.
 
 **Declared values** that aren't valid SPDX are parsed in three steps:
+
 1. Free-text license names ("BSD-3-Clause license", "GPLv3", "MIT + Commons Clause", Creative Commons URLs, npm's `UNLICENSED`) resolve through the `names` table in [`spdx-grants.yaml`](https://github.com/eukgoekoko/skillbom/blob/main/plugins/skillbom/src/skillbom/data/spdx-grants.yaml), at 0.8.
 2. Otherwise, a value mentioning "proprietary" resolves to `LicenseRef-proprietary` at 0.6.
 3. Any license file the value names is followed.
@@ -74,6 +76,7 @@ To apply the [grant rules](license-file.md#grants) to open-source licenses, the 
 ## Merging scans
 
 `skillbom merge` combines per-machine BOMs:
+
 - **Components** line up across machines because `bomRef` comes from the content hash. Their installations are combined.
 - **Conflicting detections:** when machines detect different licenses for the same content (for example, one copy sits in a repository with a LICENSE and another doesn't), the stronger status wins (declared > inferred > unknown), then the higher confidence. License findings are taken only from the scan whose detection won, so stale findings from a weaker scan are dropped. Other findings are deduplicated.
 - **Policies:** if the inputs used different policies, the CLI warns and the merged BOM records none.

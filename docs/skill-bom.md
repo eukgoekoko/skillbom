@@ -9,6 +9,7 @@ This page specifies the format. How the reference scanner produces it is describ
 ## Why a separate BOM format
 
 Software bills of materials (SBOMs) such as [CycloneDX](https://cyclonedx.org/) and [SPDX](https://spdx.dev/) describe packages and their dependencies. Agent skills raise questions those formats don't model:
+
 - **Where the license came from.** Skill licenses are often inferred from a repository root or a parent plugin rather than declared, so each license needs its evidence and a status.
 - **Where it's installed.** The same skill sits on many machines in different scopes: user, project, managed by the organization.
 - **Whether the company may use it.** The answer depends on commercial entitlements, not just on the license id.
@@ -237,6 +238,7 @@ Producers SHOULD use these rule ids where they apply, so findings mean the same 
 ## Merging
 
 A BOM MAY be merged from per-machine BOMs. A merged BOM:
+
 - MUST contain each content once, with the installations of all inputs.
 - MUST list its inputs in `metadata.mergedFrom`.
 - MUST NOT record a `policy` if its inputs were evaluated against different policies.
@@ -264,15 +266,18 @@ How conflicting license evidence across machines is resolved is up to the produc
 ## Conformance
 
 **A conforming BOM:**
+
 - MUST validate against the [JSON Schema](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-bom.schema.json) for its `specVersion`.
 - MUST give every `bomRef` referenced by `dependencies` or `findings` a matching component.
 - MUST record every piece of license evidence it relied on in `evidence`.
 
 **A conforming producer:**
+
 - MUST NOT mark a license `declared` unless it comes from a skill license file.
 - SHOULD pseudonymize host ids and shorten home-directory paths to `~`, so BOMs can be shared without exposing user names.
 
 **A conforming consumer:**
+
 - MUST treat license categories and findings as a summary of license texts, not as legal advice.
 
 ## Privacy

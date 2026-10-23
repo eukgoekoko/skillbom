@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% if page.title %}{{ page.title }} · {% endif %}skillbom</title>
+<meta name="description" content="{{ page.description | default: site.description }}">
+<link rel="icon" type="image/png" href="{{ '/assets/icon.png' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/site.css' | relative_url }}">
+</head>
+<body class="docpage">
+<header class="doc-head">
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="{{ '/' | relative_url }}"><img src="{{ '/assets/icon.png' | relative_url }}" alt="" width="28" height="28"><span>skill<span>bom</span></span></a>
+      <ul>
+        <li><a href="{{ '/license-file.html' | relative_url }}"{% if page.url contains 'license-file' %} aria-current="page"{% endif %}>License file</a></li>
+        <li><a href="{{ '/skill-bom.html' | relative_url }}"{% if page.url contains 'skill-bom' %} aria-current="page"{% endif %}>Skill BOM</a></li>
+        <li><a href="{{ '/scanner.html' | relative_url }}"{% if page.url contains 'scanner' %} aria-current="page"{% endif %}>Scanner</a></li>
+        <li><a href="{{ '/research/corpus-2026-10.html' | relative_url }}"{% if page.url contains 'research' %} aria-current="page"{% endif %}>Research</a></li>
+        <li><a href="{{ '/demo/report.html' | relative_url }}">Sample report</a></li>
+        <li><a href="https://github.com/eukgoekoko/skillbom">GitHub</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<div class="wrap doc-grid">
+  <aside class="toc" aria-label="On this page" hidden>
+    <p class="toc-title">On this page</p>
+    <ol id="toc"></ol>
+  </aside>
+  <main class="prose">
+{{ content }}
+    <p class="page-foot">
+      <a href="https://github.com/eukgoekoko/skillbom/edit/main/docs/{{ page.path }}">Edit this page on GitHub</a> ·
+      <a href="https://github.com/eukgoekoko/skillbom/issues/new?title={{ 'Feedback: ' | append: page.title | url_encode }}">Give feedback</a>
+    </p>
+  </main>
+</div>
+<footer>
+  <div class="wrap">
+    <span class="motto"><img src="{{ '/assets/icon.png' | relative_url }}" alt="" width="18" height="18">every skill accounted for.</span>
+    <div class="foot-links">
+      <span>skillbom · Apache-2.0 · <a href="{{ '/privacy.html' | relative_url }}">Privacy</a> · <a href="https://github.com/eukgoekoko/skillbom/issues">Support</a> · <a href="https://github.com/eukgoekoko/skillbom">GitHub</a></span>
+      <small>License categories summarize license texts and are not legal advice.</small>
+    </div>
+  </div>
+</footer>
+<script>
+(() => {
+  const main = document.querySelector('.prose');
+  // Wide tables scroll inside their own box instead of widening the page.
+  main.querySelectorAll('table').forEach(t => {
+    const w = document.createElement('div'); w.className = 'table-wrap';
+    t.parentNode.insertBefore(w, t); w.appendChild(t);
+  });
+  const heads = [...main.querySelectorAll('h2[id], h3[id]')];
+  heads.forEach(h => {
+    const a = document.createElement('a');
+    a.className = 'anchor'; a.href = '#' + h.id; a.textContent = '#'; a.setAttribute('aria-label', 'Link to this section');
+    h.appendChild(a);
+  });
+  const toc = document.getElementById('toc');
+  const items = heads.filter(h => h.tagName === 'H2' || heads.filter(x => x.tagName === 'H2').length < 6);
+  if (items.length < 3) return;
+  const links = items.map(h => {
+    const li = document.createElement('li'); if (h.tagName === 'H3') li.className = 'sub';
+    const a = document.createElement('a'); a.href = '#' + h.id;
+    a.textContent = h.firstChild.textContent.trim();
+    li.appendChild(a); toc.appendChild(li); return [h, a];
+  });
+  document.querySelector('.toc').hidden = false;
+  // Mark the section being read.
+  const mark = () => {
+    let current = links[0];
+    for (const pair of links) if (pair[0].getBoundingClientRect().top < 120) current = pair;
+    links.forEach(([, a]) => a.classList.toggle('active', a === current[1]));
+  };
+  addEventListener('scroll', mark, { passive: true }); mark();
+})();
+</script>
+</body>
+</html>

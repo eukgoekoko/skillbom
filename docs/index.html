@@ -9,26 +9,8 @@
 <meta property="og:title" content="skillbom — license audit for AI agent skills">
 <meta property="og:description" content="81% of public agent skills carry no license of their own. skillbom finds out what yours are under.">
 <meta property="og:image" content="https://eukgoekoko.github.io/skillbom/assets/report.png">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-:root{--bg:#fcfcfb;--panel:#ffffff;--border:#e4e2dc;--text:#0b0b0b;--text-2:#52514e;--muted:#6f6d68;
---accent:#2a78d6;--accent-ink:#1c5cab;--code-bg:#f3f2ef;--hero-1:#eef4fc;--critical:#d03b3b;
---check:#1baf7a;--mark:#bfeedd;--hero-notch:#e6eef9;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--panel:#1d1d1b;--border:#34332f;
---text:#f5f4ef;--text-2:#c3c2b7;--muted:#9c9a92;--accent:#3987e5;--accent-ink:#86b6ef;--code-bg:#262623;--hero-1:#18212d;
---check:#199e70;--mark:#1f4a3a;--hero-notch:#161b21;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#141413;--panel:#1d1d1b;--border:#34332f;--text:#f5f4ef;--text-2:#c3c2b7;--muted:#9c9a92;
---accent:#3987e5;--accent-ink:#86b6ef;--code-bg:#262623;--hero-1:#18212d;--check:#199e70;--mark:#1f4a3a;--hero-notch:#161b21;color-scheme:dark}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:var(--accent-ink);text-decoration:none}a:hover{text-decoration:underline}
-code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:24px}
-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:20px;flex-wrap:wrap}
-.logo{font-weight:700;font-size:18px;color:var(--text);letter-spacing:-.01em}
-.logo span span{color:var(--accent)}
-nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
-nav ul a{color:var(--text-2);font-size:15px}
 .hero{background:linear-gradient(180deg,var(--hero-1),var(--bg));border-bottom:1px solid var(--border)}
 .hero-inner{padding-block:64px 72px;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
 h1{font-size:clamp(34px,5vw,52px);line-height:1.08;letter-spacing:-.025em;margin:0 0 18px}
@@ -72,9 +54,6 @@ h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.02em;line-height:1.15;margi
 .doc b{display:block;margin-bottom:6px}
 .doc span{color:var(--text-2);font-size:15px}
 /* signature details */
-::selection{background:#b7d3f6;color:#0b0b0b}
-.logo{display:inline-flex;align-items:center;gap:10px}
-.logo img{width:28px;height:28px;border-radius:7px;display:block}
 .mark{background:linear-gradient(transparent 62%,var(--mark) 62%,var(--mark) 92%,transparent 92%) no-repeat 0 0/100% 100%;padding-inline:.06em;animation:mark 900ms 300ms cubic-bezier(.2,.7,.2,1) both}
 @keyframes mark{from{background-size:0 100%}to{background-size:100% 100%}}
 @media (prefers-reduced-motion:reduce){.mark{animation:none}}
@@ -89,13 +68,6 @@ h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.02em;line-height:1.15;margi
 .checks{list-style:none;padding-left:0}
 .checks li{position:relative;padding-left:28px}
 .checks li::before{content:"";position:absolute;left:0;top:.3em;width:18px;height:18px;border-radius:50%;background:var(--check) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.4l2.6 2.6L13 6.4' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat}
-.motto{font:600 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text-2);display:inline-flex;align-items:center;gap:8px}
-.motto img{width:18px;height:18px;border-radius:5px}
-footer{border-top:1px solid var(--border);padding-block:32px;color:var(--muted);font-size:14px}
-footer .wrap{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-.foot-links{display:flex;flex-direction:column;gap:4px;text-align:right}
-.foot-links small{font-size:12px}
-@media (max-width:860px){.foot-links{text-align:left}}
 @media (max-width:860px){.hero-inner,.spec{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.steps,.docs{grid-template-columns:1fr}
 .hero-inner{padding-block:40px 48px;gap:32px}section{padding-block:52px}}
 @media (max-width:440px){.stats{grid-template-columns:1fr}nav ul{gap:14px}}

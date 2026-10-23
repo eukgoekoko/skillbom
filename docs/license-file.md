@@ -242,11 +242,13 @@ printf 'SKILL.md\0%s\nscripts/greet.py\0%s\n' \
 ## Conformance
 
 **A conforming file:**
+
 - MUST validate against the [JSON Schema](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-license.schema.json) for its `specVersion`.
 - MUST define every `LicenseRef-` id it uses, and provide `license.text` when it uses any.
 - SHOULD include `subject.contentHash` when the subject is distributed.
 
 **A conforming consumer:**
+
 - MUST treat the license text, not the grants, as authoritative.
 - MUST NOT treat the file as proof of entitlement. Whether a licensee holds an offer is established by a purchase record, not by the file.
 - SHOULD verify `contentHash` when present, and report a mismatch as a modified copy.
