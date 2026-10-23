@@ -160,6 +160,55 @@ def test_own_license_beats_repo_license(home, tmp_path):
     assert by_name(bom, "tool", "plugin")["license"]["expression"] == "LicenseRef-proprietary"
 
 
+def _npx_skills_home(tmp_path) -> Path:
+    """A home as `npx skills` leaves it: copies in ~/.agents/skills, symlinks in ~/.claude/skills,
+    and the lock file naming each skill's repository."""
+    h = tmp_path / "home"
+    shared = h / ".agents/skills"
+    skill(shared / "grill", "grill")  # Claude Code and the shared dir
+    skill(shared / "only-shared", "only-shared")  # installed only for agents that read ~/.agents
+    skill(shared / "local-one", "local-one")
+    (h / ".claude/skills").mkdir(parents=True)
+    (h / ".claude/skills/grill").symlink_to(shared / "grill")
+    write(h / ".agents/.skill-lock.json", json.dumps({"version": 3, "skills": {
+        "grill": {"source": "acme/skills", "sourceType": "github",
+                  "sourceUrl": "https://github.com/acme/skills.git", "skillPath": "skills/misc/grill/SKILL.md"},
+        "Only Shared": {"source": "acme/only-shared", "sourceType": "github", "skillPath": "SKILL.md"},
+        "local-one": {"source": "/tmp/x", "sourceType": "local", "skillPath": "SKILL.md"},
+    }}))
+    return h
+
+
+def test_npx_skills_lock_source(tmp_path, monkeypatch):
+    monkeypatch.delenv("XDG_STATE_HOME", raising=False)
+    bom = scan(tmp_path, "--home", str(_npx_skills_home(tmp_path)))
+
+    grill = by_name(bom, "grill")
+    assert grill["source"] == {"type": "git", "url": "https://github.com/acme/skills", "path": "skills/misc/grill"}
+    # The symlink and its target have the same content: one component, both installations.
+    assert sorted((i["platform"], i["path"]) for i in grill["installations"]) == [
+        ("agents", "~/.agents/skills/grill"), ("claude-code", "~/.claude/skills/grill")]
+    [f] = [f for f in bom["findings"] if f["components"] == [grill["bomRef"]]]
+    assert f["rule"] == "license-unknown"
+    assert "https://github.com/acme/skills (skills/misc/grill)" in f["message"]
+    assert "skill-license.yaml" in f["remediation"]
+
+    # Lock keys are matched by the installer's sanitized folder name; a root skill has no path.
+    assert by_name(bom, "only-shared")["source"] == {"type": "git", "url": "https://github.com/acme/only-shared"}
+    assert by_name(bom, "local-one")["source"] == {"type": "local"}
+    assert "~/.agents" in bom["metadata"]["scope"]["hosts"][0]["roots"]
+
+
+def test_npx_skills_lock_under_xdg_state(tmp_path, monkeypatch):
+    h = _npx_skills_home(tmp_path)
+    state = tmp_path / "state"
+    (state / "skills").mkdir(parents=True)
+    (h / ".agents/.skill-lock.json").rename(state / "skills/.skill-lock.json")
+    monkeypatch.setenv("XDG_STATE_HOME", str(state))
+    bom = scan(tmp_path, "--home", str(h))
+    assert by_name(bom, "grill")["source"]["type"] == "git"
+
+
 def test_project_and_root(tmp_path):
     proj = tmp_path / "proj"
     skill(proj / ".claude/skills/p", "p")

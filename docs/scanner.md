@@ -27,9 +27,12 @@ In Claude Code, the `skillbom` plugin runs the same scanner through `/skillbom:a
 | | installed plugins from `~/.claude/plugins/installed_plugins.json` (falling back to `plugins/cache/`) (`settings.json` isn't read, so whether a plugin is enabled isn't recorded: that file can hold credentials) | as installed |
 | Claude Code, managed | `/Library/Application Support/ClaudeCode` (macOS), `/etc/claude-code` (Linux), scanned recursively | `managed` |
 | Codex CLI | `$CODEX_HOME/skills` or `~/.codex/skills` | `user` |
+| Shared agents directory | `~/.agents/skills/*/`, where [`npx skills`](https://github.com/vercel-labs/skills) installs (it symlinks Claude Code's copy from here; agents such as Codex or Cursor read it directly), platform `agents` | `user` |
 | Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/` | `project` |
 | Anything else (`--root DIR`) | recursively: a directory with `.claude-plugin/plugin.json` is a plugin; one with `SKILL.md` is a skill | `local` |
 | Catalogs (`--include-catalogs`) | plugins that marketplace clones in `~/.claude/plugins/marketplaces/*` ship locally | `catalog` |
+
+For user-level skills, the `npx skills` lock file (`$XDG_STATE_HOME/skills/.skill-lock.json`, or `~/.agents/.skill-lock.json`) supplies the source: a skill whose folder name matches a lock entry gets `source: {type: git, url, path}`, where `path` is the skill's folder in that repository. The installer copies only that folder, so the repository's LICENSE never reaches the disk. When nothing else declares a license, the `license-unknown` finding names the repository to check. The scanner doesn't fetch it: it makes no network calls.
 
 Skills under a plugin's `skills/*/` become separate components (`installScope: plugin`) with a `contains` dependency from the plugin.
 
@@ -111,5 +114,6 @@ The scanner runs locally and uploads nothing. Host ids default to a pseudonymous
 ## Known limitations
 
 - **Plugin copies don't inherit their repository's LICENSE.** An installed plugin's copy lives outside its marketplace clone, so it doesn't inherit the clone's root LICENSE, while the catalog copy does.
+- **A repository's LICENSE isn't fetched for `npx skills` installs.** The source is recorded and named in the finding, but the license stays `NOASSERTION` until someone adds a `skill-license.yaml`.
 - **Only files the scanner knows are read.** License statements in READMEs or source-file headers aren't considered.
 - **Repos that license docs and code separately** (e.g. `LICENSE` for code and `LICENSE-CONTENT` for docs) are reported as a choice between both licenses.

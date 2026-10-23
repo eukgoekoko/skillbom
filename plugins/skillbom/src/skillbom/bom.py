@@ -78,7 +78,7 @@ def build(candidates: list[Candidate], *, roots: list[Path], policy: Policy | No
         comp["entitlement"] = {"status": entitlement_status(d.expression)}
         comp["installations"] = [install]
         components[ref] = comp
-        findings += evaluate(ref, c.name, d, integrity, policy)
+        findings += evaluate(ref, c.name, d, integrity, policy, c.source)
 
     findings = number_findings(findings)
     comps = list(components.values())

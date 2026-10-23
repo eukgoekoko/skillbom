@@ -178,13 +178,61 @@ def _catalogs(plugins_dir: Path) -> list[Candidate]:
     return out
 
 
+def skills_lock(home: Path) -> dict[str, dict]:
+    """Install records of `npx skills` (vercel-labs/skills): folder name -> lock entry.
+
+    The installer copies only the skill's own folder, so a LICENSE at the root of its
+    repository is never on disk; the recorded source is the only lead to it.
+    """
+    state = os.environ.get("XDG_STATE_HOME")
+    path = Path(state) / "skills/.skill-lock.json" if state else home / ".agents/.skill-lock.json"
+    entries = read_json(path).get("skills")
+    if not isinstance(entries, dict):
+        return {}
+    # Folder names are the installer's sanitizeName() of the lock key.
+    return {re.sub(r"[^a-z0-9._]+", "-", k.lower()).strip("-."): v
+            for k, v in entries.items() if isinstance(v, dict)}
+
+
+def _lock_source(entry: dict) -> dict | None:
+    url = entry.get("sourceUrl")
+    if not url and entry.get("sourceType") == "github" and entry.get("source"):
+        url = f"https://github.com/{entry['source']}"
+    if not isinstance(url, str) or not url.startswith(("https://", "http://", "git@")):
+        return None  # local or unrecognized source: nothing to point at
+    out = {"type": "git", "url": url[:-4] if url.endswith(".git") else url}
+    folder = str(Path(str(entry.get("skillPath") or "")).parent)
+    if folder not in ("", "."):
+        out["path"] = folder
+    return out
+
+
+def _apply_lock(cands: list[Candidate], lock: dict[str, dict]) -> list[Candidate]:
+    for c in cands:
+        if c.source.get("type") == "local" and c.path.name in lock:
+            c.source = _lock_source(lock[c.path.name]) or c.source
+    return cands
+
+
+def agents(home: Path) -> list[Candidate]:
+    """~/.agents/skills: the shared directory `npx skills` installs into. Claude Code gets a
+    symlink to it in ~/.claude/skills; agents that read it directly (Codex, Cursor, Amp, ...)
+    get nothing else, so skills installed only for them live here alone."""
+    skills = home / ".agents/skills"
+    if not skills.is_dir():
+        return []
+    return _apply_lock(_skills_in(skills, platform="agents", install_scope="user", boundary=skills),
+                       skills_lock(home))
+
+
 def claude_code(home: Path, include_catalogs: bool = False) -> list[Candidate]:
     base = home / ".claude"
     out: list[Candidate] = []
     skills = base / "skills"
     if skills.is_dir():
-        out += [c for c in _skills_in(skills, platform="claude-code", install_scope="user", boundary=skills)
-                if c.path.name != "synced"]
+        out += _apply_lock([c for c in _skills_in(skills, platform="claude-code", install_scope="user",
+                                                   boundary=skills) if c.path.name != "synced"],
+                           skills_lock(home))
         # Skills synced from the user's claude.ai account: synced/<org>_<account>/<skill>/
         for skill_md in sorted(skills.glob("synced/*/*/SKILL.md")):
             out.append(_skill(skill_md.parent, platform="claude-code", install_scope="user",
@@ -202,7 +250,8 @@ def codex(home: Path) -> list[Candidate]:
     skills = Path(os.environ.get("CODEX_HOME") or home / ".codex") / "skills"
     if not skills.is_dir():
         return []
-    return _skills_in(skills, platform="codex-cli", install_scope="user", boundary=skills)
+    return _apply_lock(_skills_in(skills, platform="codex-cli", install_scope="user", boundary=skills),
+                       skills_lock(home))
 
 
 def managed() -> list[Candidate]:
