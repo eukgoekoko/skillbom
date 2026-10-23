@@ -29,12 +29,13 @@ def scan_repo(repo_dir: str) -> dict | None:
     except Exception as e:  # keep going; report the failure
         return {"repo": d.name, "error": f"{type(e).__name__}: {e}"}
     (CORPUS / "boms" / f"{d.name}.json").write_text(json.dumps(bom))
-    anthropic_terms = set()
+    anthropic_terms = []  # one entry per copy: a repo may ship the same skill in several folders
     for c in cands:
         for f in license_files(c.path):
             try:
                 if ANTHROPIC_TERMS in " ".join(f.read_text(errors="replace").lower().split()):
-                    anthropic_terms.add(c.name)
+                    anthropic_terms.append(c.name)
+                    break
             except OSError:
                 pass
     root_files = license_files(d)
