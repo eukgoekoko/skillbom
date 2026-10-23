@@ -55,6 +55,17 @@
         om: { label: 'Official marketplace', ...view(d.byRepoOfficialMarketplace, 'official-marketplace repositories with skills') },
       } };
     },
+    'repo-size': d => {
+      const s = d.drilldown.skillsPerRepo, repos = d.drilldown.repos;
+      const total = s.bins.reduce((a, b) => a + b.skills, 0);
+      const tip = b => `${b.bin} skills: ${num(b.repos)} repositories, holding ${num(b.skills)} skills`;
+      return { scale: 60, views: {
+        repos: { label: 'Share of repositories', sub: `Share of the ${num(repos)} repositories that contain skills, by how many they contain`,
+                 rows: s.bins.map(b => ({ label: b.bin, value: 100 * b.repos / repos, tip: tip(b) })) },
+        skills: { label: 'Share of skills', sub: `Share of all ${num(total)} skills, by the size of the repository they sit in`,
+                  rows: s.bins.map(b => ({ label: b.bin, value: 100 * b.skills / total, tip: tip(b) })) },
+      } };
+    },
     marketplace: d => ({
       grouped: true, scale: 25,
       series: [['s1', 'All repositories', d.byRepo], ['s2', 'Official Claude Code marketplace', d.byRepoOfficialMarketplace]],
@@ -157,4 +168,164 @@
       fig.classList.add('is-live');
     }))
     .catch(() => { /* keep the static charts */ });
+})();
+
+/* License explorer: pick a license category to see the licenses inside it and where
+   those skills' licenses come from. Data: the summary JSON's `drilldown` section. */
+(() => {
+  const box = document.querySelector('[data-explorer]');
+  if (!box || !window.fetch) return;
+  const num = v => v.toLocaleString('en-US');
+  const LABELS = { permissive: 'Permissive', copyleft: 'Copyleft', 'source-available': 'Source-available',
+    'non-commercial': 'Non-commercial', proprietary: 'Proprietary', custom: 'Custom terms',
+    other: 'Other terms', none: 'No license' };
+  const ABOUT = {
+    permissive: 'Use, modify and redistribute, including commercially, usually with attribution.',
+    copyleft: 'Allowed commercially, but derived work must be shared under the same license.',
+    'source-available': 'Readable source with restrictions, typically on offering it as a service.',
+    'non-commercial': 'Commercial use is not permitted without a separate license.',
+    proprietary: 'All rights reserved or proprietary terms: use needs the owner\'s permission.',
+    custom: 'A license text that matches no known license; a human has to read it.',
+    other: 'Organization-specific terms declared as LicenseRef-, and licenses not mapped yet.',
+    none: 'Nothing found in the skill, its plugin or its repository: by default, no rights are granted.',
+  };
+  const SOURCES = [['own', 'The skill itself'], ['parentManifest', 'Parent plugin manifest'],
+                   ['repoLicenseFile', 'Repository LICENSE file'], ['none', 'No license anywhere']];
+  const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  fetch(box.dataset.explorer).then(r => (r.ok ? r.json() : Promise.reject(r.status))).then(data => {
+    const dd = data.drilldown;
+    const tiles = h('div', 'cat-tiles');
+    tiles.setAttribute('role', 'group'); tiles.setAttribute('aria-label', 'License category');
+    const panel = h('div', 'explorer-panel');
+    let current = dd.categories[0].category, by = 'repos';
+
+    const draw = () => {
+      const c = dd.categories.find(x => x.category === current);
+      tiles.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cat === current)));
+      panel.replaceChildren();
+
+      const fig = h('figure', 'chart is-live');
+      const cap = h('figcaption');
+      cap.append(h('b', null, `${LABELS[current]}: the licenses inside`),
+                 h('span', null, `${num(c.skills)} skills in ${num(c.repos)} repositories. ${ABOUT[current]}`));
+      const controls = h('div', 'chart-controls');
+      [['repos', 'By repositories'], ['skills', 'By skills']].forEach(([k, label]) => {
+        const b = h('button', null, label); b.type = 'button'; b.setAttribute('aria-pressed', String(by === k));
+        b.addEventListener('click', () => { by = k; draw(); }); controls.append(b);
+      });
+      const rows = c.licenses.filter(l => by === 'skills' || l.repos != null);
+      const max = Math.max(...rows.map(l => l[by]));
+      const bars = h('div', 'chart-bars');
+      rows.forEach(l => {
+        const r = h('div', 'chart-row'); r.tabIndex = 0;
+        r.dataset.tip = `${l.expression}: ${num(l.skills)} skills` + (l.repos != null ? ` in ${num(l.repos)} repositories` : '');
+        const track = h('span', 'chart-track'), bar = h('span', 'chart-bar s1');
+        bar.style.width = `${Math.max(100 * l[by] / max, 0.6)}%`; track.append(bar);
+        r.append(h('span', 'chart-label', l.expression), track, h('span', 'chart-value', num(l[by])));
+        bars.append(r);
+      });
+      const note = h('p', 'chart-note', by === 'repos'
+        ? 'Counted per repository: a repository counts once for each license any of its skills has.'
+        : 'Counted per distinct skill; a few very large repositories dominate these counts.');
+      fig.append(cap, controls, bars, note);
+
+      const side = h('figure', 'chart is-live');
+      const scap = h('figcaption');
+      scap.append(h('b', null, 'Where these licenses come from'), h('span', null, `Share of the ${num(c.skills)} ${LABELS[current].toLowerCase()} skills, by the evidence their license was resolved from`));
+      const src = dd.sourceByCategory[current], total = Object.values(src).reduce((a, b) => a + b, 0);
+      const stack = h('div', 'stack'), legend = h('div', 'stack-legend');
+      SOURCES.filter(([k]) => src[k]).forEach(([k, label]) => {
+        const part = h('span', `src-${k}`); part.style.flex = String(src[k]);
+        part.dataset.tip = `${label}: ${num(src[k])} skills (${(100 * src[k] / total).toFixed(1)}%)`;
+        stack.append(part);
+        const row = h('div'); row.append(h('i', `src-${k}`), h('span', null, label), h('b', null, `${(100 * src[k] / total).toFixed(1)}%`));
+        legend.append(row);
+      });
+      side.append(scap, stack, legend, h('p', 'chart-note', 'Inherited licenses don\'t travel with a skill that is copied out of its repository.'));
+      panel.append(fig, side);
+    };
+
+    dd.categories.forEach(c => {
+      const b = h('button', 'cat-tile'); b.type = 'button'; b.dataset.cat = c.category;
+      b.append(h('b', null, LABELS[c.category]), h('span', null, `${num(c.repos)} repos · ${num(c.skills)} skills`));
+      b.addEventListener('click', () => { current = c.category; draw(); });
+      tiles.append(b);
+    });
+    box.replaceChildren(tiles, panel);
+    draw();
+  }).catch(() => { /* keep the static table */ });
+})();
+
+/* Sample browser: the hand-labeled skills from both accuracy rounds, searchable and filterable. */
+(() => {
+  const box = document.querySelector('[data-samples]');
+  if (!box || !window.fetch) return;
+  const PAGE = 15;
+  const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  function parseCSV(text) {
+    const rows = []; let row = [], field = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { row.push(field); field = ''; }
+      else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (ch !== '\r') field += ch;
+    }
+    if (field || row.length) { row.push(field); rows.push(row); }
+    const [head, ...body] = rows;
+    return body.filter(r => r.length === head.length).map(r => Object.fromEntries(head.map((k, i) => [k, r[i]])));
+  }
+  const files = box.dataset.samples.split(/\s+/);
+  Promise.all(files.map(f => fetch(f).then(r => (r.ok ? r.text() : Promise.reject(r.status)))))
+    .then(texts => {
+      const rows = texts.flatMap((t, i) => parseCSV(t).map(r => ({ ...r, set: i ? 'held-out' : 'training',
+        result: r.ambiguous === 'True' ? 'ambiguous' : r.license_match === 'True' ? 'match' : 'mismatch' })));
+      const cats = [...new Set(rows.map(r => r.truth_category))].sort();
+      const search = h('input'); search.type = 'search'; search.placeholder = 'Search repository, path, license or note';
+      search.setAttribute('aria-label', 'Search the labeled sample');
+      const select = (label, opts) => {
+        const s = h('select'); s.setAttribute('aria-label', label);
+        opts.forEach(([v, t]) => { const o = h('option', null, t); o.value = v; s.append(o); });
+        return s;
+      };
+      const setSel = select('Round', [['', 'Both rounds'], ['training', 'Training (200)'], ['held-out', 'Held-out (100)']]);
+      const catSel = select('Category', [['', 'All categories'], ...cats.map(c => [c, c])]);
+      const resSel = select('Result', [['', 'All results'], ['match', 'Match'], ['mismatch', 'Mismatch'], ['ambiguous', 'Ambiguous']]);
+      const count = h('span', 'sb-count');
+      const controls = h('div', 'sb-controls'); controls.append(search, setSel, catSel, resSel, count);
+      const table = h('table'), tbody = h('tbody'), thead = h('thead'), tr = h('tr');
+      ['id', 'skill', 'hand label', 'scanner', 'result', 'note'].forEach(t => tr.append(h('th', null, t)));
+      thead.append(tr); table.append(thead, tbody);
+      const wrap = h('div', 'table-wrap'); wrap.append(table);
+      const more = h('button', 'sb-more'); more.type = 'button';
+      let limit = PAGE;
+      const draw = () => {
+        const q = search.value.trim().toLowerCase();
+        const hits = rows.filter(r => (!setSel.value || r.set === setSel.value) && (!catSel.value || r.truth_category === catSel.value)
+          && (!resSel.value || r.result === resSel.value)
+          && (!q || [r.id, r.repo, r.path, r.truth, r.found, r.note].join(' ').toLowerCase().includes(q)));
+        tbody.replaceChildren(...hits.slice(0, limit).map(r => {
+          const row = h('tr');
+          const skill = h('td', 'skill'), a = h('a', null, r.repo);
+          a.href = `https://github.com/${r.repo}/tree/HEAD${r.path === '/' ? '' : r.path}`;
+          skill.append(a, h('small', null, r.path === '/' ? 'repository root' : r.path.slice(1)));
+          const badge = h('span', `badge ${r.result === 'match' ? 'ok' : r.result === 'mismatch' ? 'miss' : 'amb'}`, r.result);
+          const res = h('td'); res.append(badge);
+          row.append(h('td', null, r.id), skill, h('td', null, r.truth), h('td', null, r.found), res, h('td', null, r.note));
+          return row;
+        }));
+        count.textContent = `${hits.length} of ${rows.length} skills`;
+        more.hidden = hits.length <= limit;
+        more.textContent = `Show ${Math.min(PAGE, hits.length - limit)} more`;
+      };
+      [search, setSel, catSel, resSel].forEach(c => c.addEventListener('input', () => { limit = PAGE; draw(); }));
+      more.addEventListener('click', () => { limit += PAGE; draw(); });
+      const links = box.querySelector('p'); links.className = 'chart-note';
+      links.textContent = 'Download: ';
+      files.forEach((f, i) => { const a = h('a', null, i ? 'held-out set (CSV)' : 'training set (CSV)'); a.href = f; links.append(a, i ? '.' : ', '); });
+      box.replaceChildren(controls, wrap, more, links);
+      draw();
+    }).catch(() => { /* keep the download links */ });
 })();

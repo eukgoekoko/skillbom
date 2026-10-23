@@ -6,9 +6,13 @@ names) and docs/_includes/charts/*.html, which docs/research/corpus-2026-10.md i
 Re-run after analyze.py / accuracy.py so the published numbers and charts stay in sync.
 """
 import json
+import re
 import sys
+from collections import Counter, defaultdict
 from html import escape
 from pathlib import Path
+
+from skillbom.spdx import CATEGORIES, category
 
 ROOT = Path(__file__).resolve().parents[2]
 CORPUS = ROOT / ".corpus"
@@ -27,6 +31,76 @@ def license_source(stats: dict) -> dict:
     part = lambda c: {"count": c, "pct": pct(c, n)}
     return {"skills": n, "own": part(own), "parentManifest": part(rf.get("parent-manifest", 0)),
             "repoLicenseFile": part(rf.get("repo-license-file", 0)), "none": part(rf.get("none", 0))}
+
+
+FIXED_REFS = {"LicenseRef-proprietary", "LicenseRef-custom", "LicenseRef-commons-clause"}
+SIZE_BINS = [(1, 1, "1"), (2, 5, "2–5"), (6, 20, "6–20"), (21, 100, "21–100"), (101, 1000, "101–1,000"),
+             (1001, 10**9, "more than 1,000")]
+
+
+def _public_expression(expr: str) -> str:
+    """Organization-specific LicenseRef ids can name a project; publish them only as a group."""
+    def repl(m):
+        return m.group(0) if m.group(0) in FIXED_REFS else "LicenseRef-(organization-specific)"
+    return re.sub(r"LicenseRef-[A-Za-z0-9.-]+", repl, expr)
+
+
+def _source_kind(c: dict) -> str:
+    lic = c["license"]
+    best = [e for e in lic.get("evidence", []) if e.get("expression") == lic["expression"]]
+    if lic["expression"] == "NOASSERTION" or not best:
+        return "none"
+    top = max(best, key=lambda e: e.get("confidence", 0))["source"]
+    if top in OWN or top == "skill-license-file":
+        return "own"
+    return "parentManifest" if top == "parent-manifest" else "repoLicenseFile"
+
+
+def drilldown() -> dict:
+    """Aggregates for the study's data explorer: counts only, no repository names."""
+    seen: set[str] = set()
+    skills_by = Counter()                   # (category, expression) -> distinct skills
+    repos_by: dict[tuple, set] = defaultdict(set)  # (category, expression) -> repos (counted, never published)
+    repos_by_cat: dict[str, set] = defaultdict(set)
+    cross = Counter()                       # (category, source kind) -> distinct skills
+    sizes = []
+    for f in sorted((CORPUS / "boms").glob("*.json")):
+        skills = [c for c in json.loads(f.read_text())["components"] if c["kind"] == "skill"]
+        if not skills:
+            continue
+        sizes.append(len(skills))
+        for c in skills:
+            cat, expr = category(c["license"]["expression"]), _public_expression(c["license"]["expression"])
+            repos_by[(cat, expr)].add(f.stem)
+            repos_by_cat[cat].add(f.stem)
+            if c["bomRef"] not in seen:
+                seen.add(c["bomRef"])
+                skills_by[(cat, expr)] += 1
+                cross[(cat, _source_kind(c))] += 1
+    repos_total = len(sizes)
+    cats = []
+    for cat in CATEGORIES:
+        rows = sorted(((e, n, len(repos_by[(cc, e)])) for (cc, e), n in skills_by.items() if cc == cat),
+                      key=lambda r: (-r[2], -r[1], r[0]))
+        if not rows:
+            continue
+        top, rest = rows[:12], rows[12:]
+        licenses = [{"expression": e, "skills": n, "repos": r} for e, n, r in top]
+        if rest:
+            licenses.append({"expression": f"{len(rest)} other licenses", "skills": sum(r[1] for r in rest),
+                             "repos": None, "other": True})
+        cats.append({"category": cat, "skills": sum(r[1] for r in rows), "repos": len(repos_by_cat[cat]),
+                     "licenses": licenses})
+    kinds = ["own", "parentManifest", "repoLicenseFile", "none"]
+    bins = [{"bin": label, "repos": sum(1 for x in sizes if lo <= x <= hi),
+             "skills": sum(x for x in sizes if lo <= x <= hi)} for lo, hi, label in SIZE_BINS]
+    return {
+        "skills": len(seen),
+        "repos": repos_total,
+        "categories": cats,
+        "sourceByCategory": {c["category"]: {k: cross[(c["category"], k)] for k in kinds} for c in cats},
+        "skillsPerRepo": {"median": sorted(sizes)[len(sizes) // 2], "bins": bins},
+    }
 
 
 def summary() -> dict:
@@ -57,6 +131,7 @@ def summary() -> dict:
         "anthropicProprietaryCopies": {"repos": a["anthropicProprietaryCopies"]["repos"],
                                        "copies": a["anthropicProprietaryCopies"]["skills"]},
         "accuracy": acc,
+        "drilldown": drilldown(),
     }
 
 
@@ -121,13 +196,65 @@ def charts(d: dict) -> dict[str, str]:
     return {"license-source.html": source, "restrictive.html": restrictive, "marketplace.html": marketplace}
 
 
+CATEGORY_LABELS = {"permissive": "Permissive", "copyleft": "Copyleft", "source-available": "Source-available",
+                   "non-commercial": "Non-commercial", "proprietary": "Proprietary", "custom": "Custom terms",
+                   "other": "Other terms", "none": "No license"}
+
+
+def study_parts(d: dict) -> dict[str, str]:
+    """Header cards, method funnel and the explorer's no-JS fallback for the study page."""
+    ls, r, acc = d["licenseSource"], d["byRepo"], d["accuracy"]["holdout"]
+    inherited = round(ls["parentManifest"]["pct"] + ls["repoLicenseFile"]["pct"], 1)
+    cards = [
+        (f"{inherited}%", "of public skills are licensed only through the repository or plugin they sit in"),
+        (f"{r['anyUnlicensedPct']}%", "of repositories ship at least one skill with no license at all"),
+        (f"{d['skillCategories'].get('non-commercial', [0])[0]:,}", "skills don't permit commercial use"),
+        (f"{d['anthropicProprietaryCopies']['copies']}", f"copies of proprietary skills in "
+                                                         f"{d['anthropicProprietaryCopies']['repos']} public collections"),
+    ]
+    header = '<div class="study-stats">\n' + "\n".join(
+        f'<div class="study-stat"><b>{escape(v)}</b><span>{escape(t)}</span></div>' for v, t in cards) + "\n</div>\n"
+
+    steps = [(f"{d['repos']['scanned'] + 16:,}", "candidate repositories"), (f"{d['repos']['scanned']:,}", "fetched"),
+             (f"{d['repos']['withSkills']:,}", "contain skills"), (f"{d['skills']:,}", "distinct skills scanned"),
+             (f"{d['accuracy']['training']['n'] + acc['n']}", "hand-labeled for accuracy")]
+    method = '<ol class="method-flow">\n' + "\n".join(
+        f'<li><b>{escape(v)}</b><span>{escape(t)}</span></li>' for v, t in steps) + "\n</ol>\n"
+
+    dd = d["drilldown"]
+    rows = "".join(f'<tr><td>{escape(CATEGORY_LABELS[c["category"]])}</td><td class="num">{c["skills"]:,}</td>'
+                   f'<td class="num">{c["repos"]:,}</td><td>{escape(", ".join(l["expression"] for l in c["licenses"][:3]))}</td></tr>'
+                   for c in dd["categories"])
+    explorer = (f'<div class="explorer" data-explorer="corpus-2026-10-summary.json">\n'
+                f'<table><thead><tr><th>category</th><th>skills</th><th>repositories</th><th>most common licenses</th></tr></thead>'
+                f'<tbody>{rows}</tbody></table>\n'
+                f'<p class="chart-note">Enable JavaScript to drill into each category. The numbers are also in '
+                f'<a href="corpus-2026-10-summary.json">the summary JSON</a>.</p>\n</div>\n')
+    samples = ('<div class="sample-browser" data-samples="accuracy-train-2026-10.csv accuracy-holdout-2026-10.csv">\n'
+               '<p>The 300 hand-labeled skills are in two tables: <a href="accuracy-train-2026-10.csv">training set</a> '
+               'and <a href="accuracy-holdout-2026-10.csv">held-out set</a> (CSV). Enable JavaScript to search and filter them here.</p>\n</div>\n')
+    size, total = dd["skillsPerRepo"], sum(b["skills"] for b in dd["skillsPerRepo"]["bins"])
+    big = size["bins"][-1]
+    rows = [(b["bin"], pct(b["repos"], dd["repos"]), f'{b["bin"]} skills: {b["repos"]:,} repositories '
+             f'({pct(b["repos"], dd["repos"])}%), holding {b["skills"]:,} skills') for b in size["bins"]]
+    sizes = figure("chart-repo-size", "Skills per repository",
+                   f"Share of the {dd['repos']:,} repositories that contain skills, by how many they contain",
+                   bars(rows, 50),
+                   f"Median: {size['median']} skills per repository. The {big['repos']} repositories with more than 1,000 "
+                   f"skills together hold {pct(big['skills'], total):.0f}% of all skills, which is why this study leads "
+                   "with per-repository numbers.")
+    return {"study-header.html": header, "method.html": method, "explorer.html": explorer, "samples.html": samples,
+            "repo-size.html": sizes}
+
+
 def main() -> int:
     d = summary()
     SUMMARY.write_text(json.dumps(d, indent=2) + "\n")
     CHARTS.mkdir(parents=True, exist_ok=True)
-    for name, html in charts(d).items():
+    parts = {**charts(d), **study_parts(d)}
+    for name, html in parts.items():
         (CHARTS / name).write_text(html)
-    print(f"wrote {SUMMARY.relative_to(ROOT)} and {len(charts(d))} charts", file=sys.stderr)
+    print(f"wrote {SUMMARY.relative_to(ROOT)} and {len(parts)} includes", file=sys.stderr)
     return 0
 
 

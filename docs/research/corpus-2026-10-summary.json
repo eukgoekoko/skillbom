@@ -135,5 +135,343 @@
         "recall": 100.0
       }
     }
+  },
+  "drilldown": {
+    "skills": 62704,
+    "repos": 1211,
+    "categories": [
+      {
+        "category": "permissive",
+        "skills": 57558,
+        "repos": 1081,
+        "licenses": [
+          {
+            "expression": "MIT",
+            "skills": 27183,
+            "repos": 829
+          },
+          {
+            "expression": "Apache-2.0",
+            "skills": 6891,
+            "repos": 265
+          },
+          {
+            "expression": "CC-BY-4.0",
+            "skills": 45,
+            "repos": 11
+          },
+          {
+            "expression": "BSD-3-Clause",
+            "skills": 62,
+            "repos": 10
+          },
+          {
+            "expression": "CC0-1.0",
+            "skills": 60,
+            "repos": 7
+          },
+          {
+            "expression": "CC-BY-4.0 OR MIT",
+            "skills": 5,
+            "repos": 3
+          },
+          {
+            "expression": "Apache-2.0 OR MIT",
+            "skills": 23088,
+            "repos": 2
+          },
+          {
+            "expression": "UPL-1.0",
+            "skills": 18,
+            "repos": 2
+          },
+          {
+            "expression": "ISC",
+            "skills": 6,
+            "repos": 2
+          },
+          {
+            "expression": "MIT AND BSD-3-Clause",
+            "skills": 75,
+            "repos": 1
+          },
+          {
+            "expression": "CC-BY-4.0 AND Apache-2.0",
+            "skills": 33,
+            "repos": 1
+          },
+          {
+            "expression": "CC-BY-SA-4.0 OR MIT",
+            "skills": 23,
+            "repos": 1
+          },
+          {
+            "expression": "7 other licenses",
+            "skills": 69,
+            "repos": null,
+            "other": true
+          }
+        ]
+      },
+      {
+        "category": "copyleft",
+        "skills": 1154,
+        "repos": 50,
+        "licenses": [
+          {
+            "expression": "AGPL-3.0-only",
+            "skills": 618,
+            "repos": 26
+          },
+          {
+            "expression": "GPL-3.0-only",
+            "skills": 215,
+            "repos": 12
+          },
+          {
+            "expression": "CC-BY-SA-4.0",
+            "skills": 205,
+            "repos": 5
+          },
+          {
+            "expression": "AGPL-3.0-or-later",
+            "skills": 46,
+            "repos": 5
+          },
+          {
+            "expression": "GPL-3.0-or-later",
+            "skills": 3,
+            "repos": 3
+          },
+          {
+            "expression": "GPL-2.0-only",
+            "skills": 2,
+            "repos": 2
+          },
+          {
+            "expression": "LGPL-3.0-or-later",
+            "skills": 49,
+            "repos": 1
+          },
+          {
+            "expression": "LGPL-3.0-only",
+            "skills": 12,
+            "repos": 1
+          },
+          {
+            "expression": "MPL-2.0",
+            "skills": 3,
+            "repos": 1
+          },
+          {
+            "expression": "MIT AND CC-BY-SA-4.0",
+            "skills": 1,
+            "repos": 1
+          }
+        ]
+      },
+      {
+        "category": "source-available",
+        "skills": 205,
+        "repos": 10,
+        "licenses": [
+          {
+            "expression": "Elastic-2.0",
+            "skills": 180,
+            "repos": 3
+          },
+          {
+            "expression": "FSL-1.1-MIT",
+            "skills": 16,
+            "repos": 3
+          },
+          {
+            "expression": "PolyForm-Shield-1.0.0",
+            "skills": 3,
+            "repos": 2
+          },
+          {
+            "expression": "FSL-1.1-ALv2",
+            "skills": 3,
+            "repos": 1
+          },
+          {
+            "expression": "PolyForm-Internal-Use-1.0.0",
+            "skills": 3,
+            "repos": 1
+          }
+        ]
+      },
+      {
+        "category": "non-commercial",
+        "skills": 668,
+        "repos": 22,
+        "licenses": [
+          {
+            "expression": "CC-BY-NC-SA-4.0",
+            "skills": 86,
+            "repos": 7
+          },
+          {
+            "expression": "PolyForm-Noncommercial-1.0.0",
+            "skills": 35,
+            "repos": 7
+          },
+          {
+            "expression": "CC-BY-NC-4.0",
+            "skills": 95,
+            "repos": 4
+          },
+          {
+            "expression": "BUSL-1.1",
+            "skills": 451,
+            "repos": 3
+          },
+          {
+            "expression": "CC-BY-NC-ND-4.0",
+            "skills": 1,
+            "repos": 1
+          }
+        ]
+      },
+      {
+        "category": "proprietary",
+        "skills": 169,
+        "repos": 27,
+        "licenses": [
+          {
+            "expression": "LicenseRef-proprietary",
+            "skills": 169,
+            "repos": 27
+          }
+        ]
+      },
+      {
+        "category": "custom",
+        "skills": 159,
+        "repos": 10,
+        "licenses": [
+          {
+            "expression": "LicenseRef-custom",
+            "skills": 159,
+            "repos": 10
+          }
+        ]
+      },
+      {
+        "category": "other",
+        "skills": 1226,
+        "repos": 11,
+        "licenses": [
+          {
+            "expression": "MIT-0",
+            "skills": 73,
+            "repos": 6
+          },
+          {
+            "expression": "LicenseRef-(organization-specific)",
+            "skills": 1153,
+            "repos": 5
+          }
+        ]
+      },
+      {
+        "category": "none",
+        "skills": 1565,
+        "repos": 63,
+        "licenses": [
+          {
+            "expression": "NOASSERTION",
+            "skills": 1565,
+            "repos": 63
+          }
+        ]
+      }
+    ],
+    "sourceByCategory": {
+      "permissive": {
+        "own": 10002,
+        "parentManifest": 34050,
+        "repoLicenseFile": 13506,
+        "none": 0
+      },
+      "copyleft": {
+        "own": 33,
+        "parentManifest": 433,
+        "repoLicenseFile": 688,
+        "none": 0
+      },
+      "source-available": {
+        "own": 4,
+        "parentManifest": 18,
+        "repoLicenseFile": 183,
+        "none": 0
+      },
+      "non-commercial": {
+        "own": 13,
+        "parentManifest": 45,
+        "repoLicenseFile": 610,
+        "none": 0
+      },
+      "proprietary": {
+        "own": 42,
+        "parentManifest": 18,
+        "repoLicenseFile": 109,
+        "none": 0
+      },
+      "custom": {
+        "own": 1,
+        "parentManifest": 0,
+        "repoLicenseFile": 158,
+        "none": 0
+      },
+      "other": {
+        "own": 72,
+        "parentManifest": 1154,
+        "repoLicenseFile": 0,
+        "none": 0
+      },
+      "none": {
+        "own": 0,
+        "parentManifest": 0,
+        "repoLicenseFile": 0,
+        "none": 1565
+      }
+    },
+    "skillsPerRepo": {
+      "median": 5,
+      "bins": [
+        {
+          "bin": "1",
+          "repos": 403,
+          "skills": 403
+        },
+        {
+          "bin": "2\u20135",
+          "repos": 205,
+          "skills": 651
+        },
+        {
+          "bin": "6\u201320",
+          "repos": 317,
+          "skills": 3578
+        },
+        {
+          "bin": "21\u2013100",
+          "repos": 220,
+          "skills": 9798
+        },
+        {
+          "bin": "101\u20131,000",
+          "repos": 60,
+          "skills": 14016
+        },
+        {
+          "bin": "more than 1,000",
+          "repos": 6,
+          "skills": 34434
+        }
+      ]
+    }
   }
 }
