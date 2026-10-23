@@ -223,12 +223,21 @@
         const track = h('span', 'chart-track'), bar = h('span', 'chart-bar s1');
         bar.style.width = `${Math.max(100 * l[by] / max, 0.6)}%`; track.append(bar);
         r.append(h('span', 'chart-label', l.expression), track, h('span', 'chart-value', num(l[by])));
+        if (!l.other && !l.expression.includes('(organization-specific)')) {
+          r.classList.add('is-link');
+          r.dataset.tip += ' · click to list the repositories';
+          const go = () => document.dispatchEvent(new CustomEvent('repo-filter', { detail: { license: l.expression } }));
+          r.addEventListener('click', go);
+          r.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+        }
         bars.append(r);
       });
       const note = h('p', 'chart-note', by === 'repos'
         ? 'Counted per repository: a repository counts once for each license any of its skills has.'
         : 'Counted per distinct skill; a few very large repositories dominate these counts.');
-      fig.append(cap, controls, bars, note);
+      const list = h('button', 'sb-more', `List the ${num(c.repos)} repositories →`); list.type = 'button';
+      list.addEventListener('click', () => document.dispatchEvent(new CustomEvent('repo-filter', { detail: { category: current } })));
+      fig.append(cap, controls, bars, note, list);
 
       const side = h('figure', 'chart is-live');
       const scap = h('figcaption');
@@ -308,9 +317,13 @@
           && (!q || [r.id, r.repo, r.path, r.truth, r.found, r.note].join(' ').toLowerCase().includes(q)));
         tbody.replaceChildren(...hits.slice(0, limit).map(r => {
           const row = h('tr');
-          const skill = h('td', 'skill'), a = h('a', null, r.repo);
-          a.href = `https://github.com/${r.repo}/tree/HEAD${r.path === '/' ? '' : r.path}`;
-          skill.append(a, h('small', null, r.path === '/' ? 'repository root' : r.path.slice(1)));
+          const skill = h('td', 'skill');
+          if (r.repo.startsWith('(')) skill.append(h('span', 'sb-count', r.repo));
+          else {
+            const a = h('a', null, r.repo);
+            a.href = `https://github.com/${r.repo}/tree/HEAD${r.path === '/' ? '' : r.path}`;
+            skill.append(a, h('small', null, r.path === '/' ? 'repository root' : r.path.slice(1)));
+          }
           const badge = h('span', `badge ${r.result === 'match' ? 'ok' : r.result === 'mismatch' ? 'miss' : 'amb'}`, r.result);
           const res = h('td'); res.append(badge);
           row.append(h('td', null, r.id), skill, h('td', null, r.truth), h('td', null, r.found), res, h('td', null, r.note));
@@ -328,4 +341,161 @@
       box.replaceChildren(controls, wrap, more, links);
       draw();
     }).catch(() => { /* keep the download links */ });
+})();
+
+/* Repository lookup: what the scanner detected in each public repository of the corpus.
+   Loads repos/index.json, then one repos/<file>.json per opened profile. Deep links: #repo=owner/name. */
+(() => {
+  const box = document.querySelector('[data-repos]');
+  if (!box || !window.fetch) return;
+  const base = box.dataset.repos;
+  const num = v => v.toLocaleString('en-US');
+  const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const CATS = [['permissive', 'Permissive'], ['copyleft', 'Copyleft'], ['source-available', 'Source-available'],
+    ['non-commercial', 'Non-commercial'], ['proprietary', 'Proprietary'], ['custom', 'Custom terms'],
+    ['other', 'Other terms'], ['none', 'No license']];
+  const CAT = Object.fromEntries(CATS);
+  const SRC = { own: 'The skill itself', parentManifest: 'Parent plugin manifest', repoLicenseFile: 'Repository LICENSE file', none: 'No license anywhere' };
+  const RULES = { 'license-unknown': 'no license found', 'commercial-use-restricted': 'commercial use restricted',
+    'license-review': 'license needs review', 'license-invalid': 'invalid license value', 'license-conflict': 'conflicting licenses',
+    'composition-incompatible': 'incompatible bundle', 'license-denied': 'denied by policy', 'integrity-modified': 'modified copy' };
+  const PAGE = 20;
+  const pctOf = (n, t) => (t ? 100 * n / t : 0);
+  const mainLicense = r => Object.keys(r.licenses)[0] || 'NOASSERTION';
+
+  function stack(counts, total, cls, labels) {
+    const bar = h('div', 'stack'), legend = h('div', 'stack-legend');
+    Object.entries(labels).forEach(([k, label]) => {
+      if (!counts[k]) return;
+      const part = h('span', `${cls}-${k}`); part.style.flex = String(counts[k]);
+      part.dataset.tip = `${label}: ${num(counts[k])} of ${num(total)} skills (${pctOf(counts[k], total).toFixed(1)}%)`;
+      bar.append(part);
+      const row = h('div'); row.append(h('i', `${cls}-${k}`), h('span', null, label), h('b', null, `${num(counts[k])}`));
+      legend.append(row);
+    });
+    return [bar, legend];
+  }
+
+  fetch(`${base}index.json`).then(r => (r.ok ? r.json() : Promise.reject(r.status))).then(data => {
+    const repos = data.repos;
+    const byName = new Map(repos.map(r => [r.repo.toLowerCase(), r]));
+    const filt = { q: '', category: '', license: '', official: false, sort: 'skills' };
+    let limit = PAGE;
+
+    const search = h('input'); search.type = 'search'; search.placeholder = `Search ${num(repos.length)} repositories, e.g. owner/name`;
+    search.setAttribute('aria-label', 'Search repositories');
+    const catSel = h('select'); catSel.setAttribute('aria-label', 'Repositories with skills under');
+    [['', 'Any license category'], ...CATS].forEach(([v, t]) => { const o = h('option', null, v ? `Has ${t.toLowerCase()} skills` : t); o.value = v; catSel.append(o); });
+    const sortSel = h('select'); sortSel.setAttribute('aria-label', 'Sort');
+    [['skills', 'Most skills'], ['name', 'Name'], ['unlicensed', 'Most unlicensed skills']].forEach(([v, t]) => { const o = h('option', null, t); o.value = v; sortSel.append(o); });
+    const omLabel = h('label', 'sb-check'), om = h('input'); om.type = 'checkbox'; omLabel.append(om, ' Official marketplace only');
+    const chip = h('button', 'filter-chip'); chip.type = 'button'; chip.hidden = true;
+    const count = h('span', 'sb-count');
+    const controls = h('div', 'sb-controls'); controls.append(search, catSel, sortSel, omLabel, chip, count);
+
+    const table = h('table'), tbody = h('tbody'), thead = h('thead'), tr = h('tr');
+    ['repository', 'skills', 'main license', 'licensed in the skill itself', 'findings'].forEach(t => tr.append(h('th', null, t)));
+    thead.append(tr); table.append(thead, tbody);
+    const wrap = h('div', 'table-wrap'); wrap.append(table);
+    const more = h('button', 'sb-more'); more.type = 'button';
+    const profile = h('div', 'repo-profile'); profile.hidden = true;
+    const listView = h('div'); listView.append(controls, wrap, more);
+
+    const matches = r => (!filt.q || r.repo.toLowerCase().includes(filt.q)) && (!filt.category || r.categories[filt.category])
+      && (!filt.license || r.licenses[filt.license]) && (!filt.official || r.official);
+    const sorters = { skills: (a, b) => b.skills - a.skills, name: (a, b) => a.repo.localeCompare(b.repo),
+      unlicensed: (a, b) => (b.categories.none || 0) - (a.categories.none || 0) || b.skills - a.skills };
+
+    function drawList() {
+      const hits = repos.filter(matches).sort(sorters[filt.sort]);
+      if (filt.sort === 'unlicensed') hits.splice(0, hits.length, ...hits.filter(r => r.categories.none));
+      tbody.replaceChildren(...hits.slice(0, limit).map(r => {
+        const row = h('tr', 'is-link'); row.tabIndex = 0;
+        const name = h('td', 'skill'), a = h('a', null, r.repo); a.href = `#repo=${r.repo}`;
+        name.append(a); if (r.official) name.append(h('small', null, 'official marketplace'));
+        const own = r.sources.own || 0;
+        const flags = h('td');
+        Object.keys(r.findings).filter(k => RULES[k] && k !== 'license-invalid').forEach(k => flags.append(h('span', 'badge amb', RULES[k]), ' '));
+        row.append(name, h('td', 'num', num(r.skills)), h('td', null, mainLicense(r)), h('td', 'num', `${pctOf(own, r.skills).toFixed(0)}%`), flags);
+        row.addEventListener('keydown', e => { if (e.key === 'Enter') location.hash = `repo=${r.repo}`; });
+        return row;
+      }));
+      count.textContent = `${num(hits.length)} of ${num(repos.length)} repositories`;
+      more.hidden = hits.length <= limit;
+      more.textContent = `Show ${Math.min(PAGE, hits.length - limit)} more`;
+      const f = filt.license ? `license: ${filt.license}` : '';
+      chip.hidden = !f; chip.textContent = `${f} ×`;
+    }
+
+    function openProfile(r) {
+      profile.hidden = false; listView.hidden = true;
+      profile.replaceChildren(h('p', 'chart-note', 'Loading…'));
+      fetch(`${base}${r.file}.json`).then(x => (x.ok ? x.json() : Promise.reject(x.status))).then(d => {
+        const back = h('button', 'sb-more', '← All repositories'); back.type = 'button';
+        back.addEventListener('click', () => { history.pushState(null, '', location.pathname + location.search + '#look-up-a-repository'); showList(); });
+        const head = h('div', 'repo-head');
+        const title = h('h3', null); const gh = h('a', null, r.repo); gh.href = `https://github.com/${r.repo}`; title.append(gh);
+        head.append(title, h('p', 'chart-note', `${num(r.skills)} skills · ${num(r.plugins)} plugins` + (r.official ? ' · listed in the official Claude Code marketplace' : '')));
+        const flags = h('p');
+        Object.entries(r.findings).filter(([k]) => RULES[k]).forEach(([k, n]) => flags.append(h('span', 'badge amb', `${RULES[k]}: ${num(n)}`), ' '));
+        const cats = h('figure', 'chart is-live'); const cc = h('figcaption'); cc.append(h('b', null, 'License categories of its skills'));
+        cats.append(cc, ...stack(r.categories, r.skills, 'cat', CAT));
+        const srcs = h('figure', 'chart is-live'); const sc = h('figcaption'); sc.append(h('b', null, 'Where those licenses come from'));
+        srcs.append(sc, ...stack(r.sources, r.skills, 'src', SRC));
+        const grid = h('div', 'repo-grid'); grid.append(cats, srcs);
+
+        const q = h('input'); q.type = 'search'; q.placeholder = 'Filter skills by folder, name or license'; q.setAttribute('aria-label', 'Filter skills');
+        const scount = h('span', 'sb-count'); const sctl = h('div', 'sb-controls'); sctl.append(q, scount);
+        const t = h('table'), tb = h('tbody'), th = h('thead'), trh = h('tr');
+        ['skill', 'license', 'found in'].forEach(x => trh.append(h('th', null, x))); th.append(trh); t.append(th, tb);
+        const tw = h('div', 'table-wrap'); tw.append(t);
+        const smore = h('button', 'sb-more'); smore.type = 'button';
+        let slimit = PAGE;
+        const drawSkills = () => {
+          const k = q.value.trim().toLowerCase();
+          const hits = d.skills.filter(s => !k || s.slice(0, 3).join(' ').toLowerCase().includes(k));
+          tb.replaceChildren(...hits.slice(0, slimit).map(([folder, name, lic, src, ev]) => {
+            const row = h('tr'); const cell = h('td', 'skill'), a = h('a', null, name);
+            a.href = `https://github.com/${r.repo}/tree/HEAD/${folder}`; cell.append(a, h('small', null, folder || 'repository root'));
+            const from = h('td'); from.append(h('span', null, SRC[src]));
+            if (ev) { const e = h('small', null, ev); from.append(e); from.className = 'skill'; }
+            row.append(cell, h('td', null, lic), from); return row;
+          }));
+          scount.textContent = `${num(hits.length)} of ${num(d.skills.length)} skills` + (d.more ? ` (first ${num(d.skills.length)} of ${num(r.skills)} shown)` : '');
+          smore.hidden = hits.length <= slimit; smore.textContent = `Show ${Math.min(PAGE, hits.length - slimit)} more`;
+        };
+        q.addEventListener('input', () => { slimit = PAGE; drawSkills(); });
+        smore.addEventListener('click', () => { slimit += PAGE; drawSkills(); });
+        drawSkills();
+        const fix = h('a', null, 'Report a correction');
+        fix.href = `https://github.com/eukgoekoko/skillbom/issues/new?title=${encodeURIComponent(`Correction: ${r.repo}`)}&body=${encodeURIComponent(`Repository: https://github.com/${r.repo}\n\nWhat the study shows:\n\nWhat is correct:\n`)}`;
+        const disc = h('p', 'chart-note', `Detected automatically by skillbom on the ${data.snapshot} snapshot of this public repository; the repository may have changed since, and detection can be wrong. Not legal advice. `);
+        disc.append(fix, '.');
+        profile.replaceChildren(back, head, flags, grid, sctl, tw, smore, disc);
+        box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }).catch(() => profile.replaceChildren(h('p', 'chart-note', 'Could not load this repository.')));
+    }
+    function showList() { profile.hidden = true; listView.hidden = false; drawList(); }
+    function route() {
+      const m = location.hash.match(/^#repo=(.+)$/);
+      const r = m && byName.get(decodeURIComponent(m[1]).toLowerCase());
+      if (r) openProfile(r); else if (!profile.hidden) showList();
+    }
+
+    search.addEventListener('input', () => { filt.q = search.value.trim().toLowerCase(); limit = PAGE; drawList(); });
+    catSel.addEventListener('input', () => { filt.category = catSel.value; limit = PAGE; drawList(); });
+    sortSel.addEventListener('input', () => { filt.sort = sortSel.value; limit = PAGE; drawList(); });
+    om.addEventListener('input', () => { filt.official = om.checked; limit = PAGE; drawList(); });
+    chip.addEventListener('click', () => { filt.license = ''; drawList(); });
+    more.addEventListener('click', () => { limit += PAGE; drawList(); });
+    document.addEventListener('repo-filter', e => {
+      filt.license = e.detail.license || ''; filt.category = e.detail.category || '';
+      catSel.value = filt.category; limit = PAGE;
+      if (location.hash.startsWith('#repo=')) history.pushState(null, '', location.pathname + location.search);
+      showList(); box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+    addEventListener('hashchange', route);
+    box.replaceChildren(listView, profile);
+    drawList(); route();
+  }).catch(() => { /* keep the fallback text */ });
 })();

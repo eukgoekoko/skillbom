@@ -5,6 +5,8 @@ Writes docs/research/corpus-2026-10-summary.json (aggregate numbers only, no rep
 names) and docs/_includes/charts/*.html, which docs/research/corpus-2026-10.md includes.
 Re-run after analyze.py / accuracy.py so the published numbers and charts stay in sync.
 """
+import csv
+import io
 import json
 import re
 import sys
@@ -18,6 +20,9 @@ ROOT = Path(__file__).resolve().parents[2]
 CORPUS = ROOT / ".corpus"
 SUMMARY = ROOT / "docs/research/corpus-2026-10-summary.json"
 CHARTS = ROOT / "docs/_includes/charts"
+REPOS = ROOT / "docs/research/repos"
+SKILLS_PER_REPO_FILE = 1000
+ANTHROPIC_TERMS = "governed by your agreement with anthropic"  # as in analyze.py
 OWN = ("skill-frontmatter", "text-match", "plugin-manifest", "skill-body")
 
 
@@ -54,6 +59,101 @@ def _source_kind(c: dict) -> str:
     if top in OWN or top == "skill-license-file":
         return "own"
     return "parentManifest" if top == "parent-manifest" else "repoLicenseFile"
+
+
+def _best_evidence(c: dict) -> tuple[str, str]:
+    """(source kind, path relative to the repository) of the evidence the license was resolved from."""
+    lic = c["license"]
+    best = [e for e in lic.get("evidence", []) if e.get("expression") == lic["expression"]]
+    if lic["expression"] == "NOASSERTION" or not best:
+        return "none", ""
+    e = max(best, key=lambda e: (e["source"] in OWN or e["source"] == "skill-license-file", e.get("confidence", 0)))
+    return _source_kind(c), e.get("path", "").removeprefix("~/").removeprefix("~")
+
+
+def _withheld(stem: str, bom: dict) -> bool:
+    """Repositories redistributing Anthropic's proprietary skills stay out of the per-repository view
+    until their maintainers have been notified. Computed from the data, never listed in the repository."""
+    if stem.startswith("anthropics__"):
+        return False
+    for c in bom["components"]:
+        if c["license"]["expression"] != "LicenseRef-proprietary":
+            continue
+        for e in c["license"].get("evidence", []):
+            f = CORPUS / "repos" / stem / e.get("path", "").removeprefix("~/")
+            try:
+                if f.is_file() and ANTHROPIC_TERMS in " ".join(f.read_text(errors="replace").lower().split()):
+                    return True
+            except OSError:
+                pass
+    return False
+
+
+def repo_profiles() -> dict:
+    """Per-repository files for the study's repository lookup: what the scanner detected in each
+    public repository, except the withheld ones. Returns the index, which the page loads first."""
+    sources = {json.loads(l)["repo"].replace("/", "__"): json.loads(l)
+               for l in (CORPUS / "sources.jsonl").read_text().splitlines()}
+    if REPOS.exists():
+        for old in REPOS.glob("*.json"):
+            old.unlink()
+    REPOS.mkdir(parents=True, exist_ok=True)
+    index, withheld = [], set()
+    for f in sorted((CORPUS / "boms").glob("*.json")):
+        bom = json.loads(f.read_text())
+        skills = [c for c in bom["components"] if c["kind"] == "skill"]
+        if not skills:
+            continue
+        if _withheld(f.stem, bom):
+            withheld.add(f.stem)
+            continue
+        src = sources.get(f.stem, {})
+        name = src.get("repo") or f.stem.replace("__", "/", 1)
+        rows = []
+        for c in skills:
+            kind, path = _best_evidence(c)
+            folder = c["installations"][0]["path"].removeprefix("~/").removeprefix("~")
+            rows.append([folder or "", c["name"], c["license"]["expression"], kind, path])
+        rows.sort()
+        cats, kinds, lics = Counter(), Counter(), Counter()
+        for _, _, expr, kind, _ in rows:
+            cats[category(expr)] += 1
+            kinds[kind] += 1
+            lics[expr] += 1
+        findings = Counter(x["rule"] for x in bom.get("findings", []))
+        index.append({"repo": name, "file": f.stem, "skills": len(rows),
+                      "plugins": sum(1 for c in bom["components"] if c["kind"] == "plugin"),
+                      "official": "official-marketplace" in src.get("origins", []),
+                      "categories": dict(cats), "sources": dict(kinds), "licenses": dict(lics.most_common()),
+                      "findings": dict(findings)})
+        (REPOS / f"{f.stem}.json").write_text(json.dumps(
+            {"repo": name, "skills": rows[:SKILLS_PER_REPO_FILE], "more": max(0, len(rows) - SKILLS_PER_REPO_FILE)},
+            separators=(",", ":")) + "\n")
+    index.sort(key=lambda r: r["repo"].lower())
+    out = {"snapshot": "2026-10", "fields": ["folder", "name", "license", "source", "evidence"],
+           "withheld": len(withheld), "repos": index}
+    (REPOS / "index.json").write_text(json.dumps(out, separators=(",", ":")) + "\n")
+    _mask_samples(withheld)
+    return out
+
+
+WITHHELD = "(withheld until the maintainers are notified)"
+
+
+def _mask_samples(withheld: set[str]) -> None:
+    """The published accuracy tables name each sampled repository; mask the withheld ones there too.
+    Verdicts stay, so the accuracy numbers can still be re-checked."""
+    for name in ("accuracy-train-2026-10.csv", "accuracy-holdout-2026-10.csv"):
+        path = ROOT / "docs/research" / name
+        rows = list(csv.DictReader(io.StringIO(path.read_text())))
+        for r in rows:
+            if r["repo"].replace("/", "__") in withheld:
+                r["repo"], r["path"] = WITHHELD, ""
+        out = io.StringIO()
+        w = csv.DictWriter(out, fieldnames=list(rows[0]), lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+        path.write_text(out.getvalue())
 
 
 def drilldown() -> dict:
@@ -243,7 +343,10 @@ def study_parts(d: dict) -> dict[str, str]:
                    f"Median: {size['median']} skills per repository. The {big['repos']} repositories with more than 1,000 "
                    f"skills together hold {pct(big['skills'], total):.0f}% of all skills, which is why this study leads "
                    "with per-repository numbers.")
-    return {"study-header.html": header, "method.html": method, "explorer.html": explorer, "samples.html": samples,
+    lookup = ('<div class="repo-lookup" data-repos="repos/">\n'
+              '<p>The repository profiles are in <a href="repos/index.json">repos/index.json</a> '
+              'and one file per repository under <code>repos/</code>. Enable JavaScript to search and open them here.</p>\n</div>\n')
+    return {"repos.html": lookup, "study-header.html": header, "method.html": method, "explorer.html": explorer, "samples.html": samples,
             "repo-size.html": sizes}
 
 
@@ -251,6 +354,8 @@ def main() -> int:
     d = summary()
     SUMMARY.write_text(json.dumps(d, indent=2) + "\n")
     CHARTS.mkdir(parents=True, exist_ok=True)
+    profiles = repo_profiles()
+    print(f"wrote {len(profiles['repos'])} repository profiles ({profiles['withheld']} withheld)", file=sys.stderr)
     parts = {**charts(d), **study_parts(d)}
     for name, html in parts.items():
         (CHARTS / name).write_text(html)

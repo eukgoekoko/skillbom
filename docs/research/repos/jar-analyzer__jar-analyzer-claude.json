@@ -1,0 +1,1 @@
+{"repo":"jar-analyzer/jar-analyzer-claude","skills":[["plugins/jar-analyzer-plugin/skills/build-db","build-db","MIT","parentManifest","plugins/jar-analyzer-plugin/.claude-plugin/plugin.json"],["plugins/jar-analyzer-plugin/skills/do-analyze","do-analyze","MIT","parentManifest","plugins/jar-analyzer-plugin/.claude-plugin/plugin.json"]],"more":0}

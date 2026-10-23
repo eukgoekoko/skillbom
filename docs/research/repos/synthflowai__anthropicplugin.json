@@ -1,0 +1,1 @@
+{"repo":"synthflowai/anthropicplugin","skills":[["plugins/synthflow/skills/call-review","call-review","MIT","parentManifest","plugins/synthflow/.claude-plugin/plugin.json"],["plugins/synthflow/skills/prompt-review","prompt-review","MIT","parentManifest","plugins/synthflow/.claude-plugin/plugin.json"]],"more":0}

@@ -1,0 +1,1 @@
+{"repo":"clickhouse/clickhouse-claude-code-plugin","skills":[["skills/clickhouse-best-practices","clickhouse-best-practices","Apache-2.0","own","skills/clickhouse-best-practices/SKILL.md"],["skills/setup","setup","Apache-2.0","parentManifest",".claude-plugin/plugin.json"]],"more":0}

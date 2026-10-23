@@ -10,7 +10,7 @@ S008,nateherkai/scroll-craft,/plugins/nateherk-design/skills/scroll-craft,MIT,pe
 S009,agents365-ai/drawio-skill,/skills/drawio-skill,MIT,permissive,True,MIT,permissive,True,True,False,
 S010,oxylabs/agent-skills,/skills/web-unblocker,MIT,permissive,False,MIT,permissive,False,True,False,
 S011,backtthefuture/video-transcript,/,MIT,permissive,True,MIT,permissive,True,True,False,
-S012,opencoworkai/open-cowork,/.claude/skills/pptx,LicenseRef-proprietary,proprietary,True,LicenseRef-proprietary,proprietary,True,True,False,Anthropic terms in skill dir; repo MIT
+S012,(withheld until the maintainers are notified),,LicenseRef-proprietary,proprietary,True,LicenseRef-proprietary,proprietary,True,True,False,Anthropic terms in skill dir; repo MIT
 S013,gc-ai-inc/gc-ai-claude-plugin,/skills/organize-matter,MIT,permissive,False,MIT,permissive,False,True,False,
 S014,leonxlnx/taste-skill,/skills/taste-skill,MIT,permissive,False,MIT,permissive,False,True,False,
 S015,milisp/mcp-linker,/plugins/macos/skills/macos-notarize-distribute,MIT,permissive,False,MIT,permissive,False,True,True,plugin.json MIT vs repo root AGPL-3.0
@@ -18,7 +18,7 @@ S016,kharmanskyi/open-steps,/skills/os-say-simple,MIT,permissive,False,MIT,permi
 S017,zubair-trabzada/ai-sales-team-claude,/skills/sales-prep,MIT,permissive,False,MIT,permissive,False,True,False,
 S018,irfad7/claude-power-skills,/skills/bughunter,MIT,permissive,False,MIT,permissive,False,True,False,
 S019,zarazhangrui/codebase-to-course,/,NOASSERTION,none,False,NOASSERTION,none,False,True,False,
-S020,mrgoonie/claudekit-skills,/.claude/skills/sequential-thinking,MIT,permissive,True,MIT,permissive,True,True,False,
+S020,(withheld until the maintainers are notified),,MIT,permissive,True,MIT,permissive,True,True,False,
 S021,alpacalabsllc/skills-for-architects,/skills/nyc-landmarks,MIT,permissive,False,MIT,permissive,False,True,False,
 S022,yanliudesign/mono-color-skill,/,MIT,permissive,True,MIT,permissive,True,True,False,
 S023,oracle/netsuite-suitecloud-sdk,/packages/ai-plugins/common/skills/suiteskills/netsuite-suiteskills-workforce,UPL-1.0,permissive,True,UPL-1.0,permissive,True,True,False,
@@ -157,7 +157,7 @@ S155,dreambigou/eli5,/skills/eli5,MIT,permissive,False,MIT,permissive,False,True
 S156,uditakhourii/adhd,/skills/adhd,MIT,permissive,True,MIT,permissive,True,True,False,
 S157,fvadicamo/dev-agent-skills,/plugins/github-workflow/skills/github-pr-creation,MIT,permissive,False,MIT,permissive,False,True,False,
 S158,glifxyz/glif-mcp-server,/skills/web-visuals,MIT,permissive,False,MIT,permissive,False,True,False,
-S159,thinkinaixyz/deepchat,/resources/skills/git-commit,Apache-2.0,permissive,False,Apache-2.0,permissive,False,True,False,
+S159,(withheld until the maintainers are notified),,Apache-2.0,permissive,False,Apache-2.0,permissive,False,True,False,
 S160,tance-mang/chinese-webnovel-skills,/skills/idea,MIT,permissive,False,MIT,permissive,False,True,False,
 S161,apurvrdx1/tagore,/,MIT,permissive,True,MIT,permissive,True,True,False,
 S162,minsight-ai-info/ai-search-hub,/,NOASSERTION,none,False,NOASSERTION,none,False,True,False,
