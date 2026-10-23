@@ -76,7 +76,6 @@ def devtools_plugin(home: Path) -> None:
     skill(plugin / "skills/api-docs", "api-docs", "Generate API reference docs from source.")
     write(home / ".claude/plugins/installed_plugins.json", json.dumps(
         {"version": 2, "plugins": {"devtools@acme-internal": [{"scope": "managed", "installPath": str(plugin)}]}}))
-    write(home / ".claude/settings.json", json.dumps({"enabledPlugins": {"devtools@acme-internal": True}}))
 
 
 def laptop_01(home: Path, contract_digest: str) -> None:

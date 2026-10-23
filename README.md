@@ -89,7 +89,7 @@ See the [license-file spec](docs/license-file.md), the [Skill BOM spec](docs/ski
 
 | Path | Contents |
 |---|---|
-| `plugins/skillbom/` | The Claude Code plugin: `audit` skill, `bin/skillbom` launcher, and the scanner package in `src/skillbom/` |
+| `plugins/skillbom/` | The Claude Code plugin: `audit` skill, `scripts/skillbom` launcher, the scanner package in `src/skillbom/`, and vendored PyYAML in `vendor/` |
 | `schema/`, `examples/` | JSON Schemas and example files for both formats |
 | `docs/` | Specs, research, and the website (GitHub Pages) |
 | `scripts/` | Schema validation, the corpus study pipeline, the sample-report generator |

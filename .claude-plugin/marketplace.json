@@ -9,7 +9,7 @@
       "name": "skillbom",
       "source": "./plugins/skillbom",
       "description": "License audit for installed agent skills and plugins (Skill BOM + HTML report).",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "security"
     }
   ]

@@ -14,7 +14,7 @@ Or just ask Claude *"what licenses are my skills under?"*. The `audit` skill:
 2. **Works out** each one's license from license files, manifests, SKILL.md and LICENSE texts.
 3. **Writes** a Skill BOM (a JSON inventory of every skill and plugin, its source and its license) and an HTML audit report to `~/skillbom-reports/<timestamp>/`.
 
-**Privacy:** everything runs on your machine. The plugin makes no network requests, except that on first use it may download PyYAML from PyPI (via `uv`, or `pip` into `~/.cache/skillbom`) if no Python with PyYAML is available. See the [privacy statement](https://eukgoekoko.github.io/skillbom/privacy.html).
+**Privacy:** everything runs on your machine. The plugin downloads nothing and makes no network requests: the scanner and its one dependency (PyYAML, in `vendor/`) ship as readable source. See the [privacy statement](https://eukgoekoko.github.io/skillbom/privacy.html).
 
 **Requirements:** Python 3.9 or newer.
 

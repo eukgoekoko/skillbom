@@ -1,6 +1,6 @@
 {
   "name": "skillbom",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "License audit for installed agent skills and plugins: scans this machine, detects each skill's license, and writes a Skill BOM plus an HTML audit report. Runs locally; nothing is uploaded.",
   "author": {
     "name": "eukgoekoko"

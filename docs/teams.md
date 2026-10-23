@@ -51,13 +51,13 @@ Leave `allowedLicenses` empty to allow everything not denied. With a list, anyth
 #   (pin to a specific commit until releases are tagged)
 user=$(stat -f %Su /dev/console)
 out="/Users/Shared/skillbom"; mkdir -p "$out"; chmod 1777 "$out"
-sudo -H -u "$user" /opt/skillbom/plugins/skillbom/bin/skillbom scan -q \
+sudo -H -u "$user" /opt/skillbom/plugins/skillbom/scripts/skillbom scan -q \
   --policy /opt/skillbom-policy.yaml \
   --host-id "$(scutil --get ComputerName)" \
   -o "$out/$(scutil --get ComputerName)-$(date +%F).json"
 ```
 
-- **Requirements:** Python 3.9 or newer. The launcher installs PyYAML once per user, from PyPI, if no Python with PyYAML is available. Pre-install `pyyaml` to avoid that network access.
+- **Requirements:** Python 3.9 or newer, nothing else. The launcher ships with its only dependency and makes no network requests.
 - **Host ids:** `--host-id` makes reports readable for IT. Without it, each machine gets a pseudonymous id.
 - **Project skills:** add `--project DIR` for repositories that ship their own skills. Add `--include-catalogs` to also list plugins that are available in marketplaces but not installed.
 - **Platforms:** macOS and Linux are tested. Windows hasn't been tested yet.

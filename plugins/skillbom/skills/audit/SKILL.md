@@ -9,11 +9,11 @@ Scan the installed skills and plugins, then report what was found. Everything ru
 
 ## 1. Run the scanner
 
-The launcher is `bin/skillbom`, two directories above this skill's base directory: `<base>/../../bin/skillbom`. Use its absolute path. Write the output to a timestamped folder in the user's home directory, not to the current project:
+The launcher is `scripts/skillbom`, two directories above this skill's base directory: `<base>/../../scripts/skillbom`. Use its absolute path. Write the output to a timestamped folder in the user's home directory, not to the current project:
 
 ```sh
 OUT="$HOME/skillbom-reports/$(date +%Y-%m-%d-%H%M)"; mkdir -p "$OUT"
-"<base>/../../bin/skillbom" scan -o "$OUT/skillbom.json" --html "$OUT/report.html"
+"<base>/../../scripts/skillbom" scan -o "$OUT/skillbom.json" --html "$OUT/report.html"
 ```
 
 Add options only when the user's request calls for them:
@@ -27,9 +27,9 @@ Add options only when the user's request calls for them:
 | their company name on the report | `--organization "NAME"` |
 | a machine name instead of the pseudonymous host id | `--host-id NAME` |
 
-To combine scans from several machines (BOM files the user collected), run `"<base>/../../bin/skillbom" merge A.json B.json ... -o "$OUT/merged.json" --html "$OUT/merged.html"` instead of `scan`.
+To combine scans from several machines (BOM files the user collected), run `"<base>/../../scripts/skillbom" merge A.json B.json ... -o "$OUT/merged.json" --html "$OUT/merged.html"` instead of `scan`.
 
-On the first run the launcher may spend a few seconds installing PyYAML into `~/.cache/skillbom`. That's expected.
+The scanner needs only Python 3.9 or newer; everything else ships with the plugin.
 
 The scanner prints a summary on stderr: component counts, licenses, and every non-info finding.
 

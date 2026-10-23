@@ -62,7 +62,6 @@ includes:
     write(plugins / "known_marketplaces.json", json.dumps({"demo": {"installLocation": str(mkt)}}))
     write(plugins / "installed_plugins.json", json.dumps(
         {"version": 2, "plugins": {"tool@demo": [{"scope": "user", "installPath": str(plugin), "version": "1.2.3"}]}}))
-    write(h / ".claude/settings.json", json.dumps({"enabledPlugins": {"tool@demo": True}}))
     return h
 
 
@@ -120,7 +119,7 @@ def test_scan_home(home, tmp_path):
     tool = by_name(bom, "tool", "plugin")
     assert tool["version"] == "1.2.3" and tool["publisher"] == "Demo Inc"
     assert tool["source"] == {"type": "marketplace", "marketplace": "demo"}
-    assert tool["installations"][0]["enabled"] is True
+    assert "enabled" not in tool["installations"][0]  # settings.json is never read
     # Installed plugins' boundary is their own dir, so the marketplace LICENSE isn't inherited.
     assert tool["license"]["expression"] == "NOASSERTION"
     assert rules(bom, "bundle") == ["composition-incompatible"]
@@ -331,3 +330,19 @@ def test_bom_spec_example_is_valid():
     assert not list(Draft202012Validator(schema).iter_errors(bom))
     refs = {c["bomRef"] for c in bom["components"]}
     assert all(set(f["components"]) <= refs for f in bom["findings"])
+
+
+def test_plugin_runs_without_installed_pyyaml():
+    """The plugin's launcher needs only python3: PyYAML ships in vendor/ (no downloads)."""
+    import subprocess
+    import sys
+    plugin = ROOT / "plugins/skillbom"
+    launcher = (plugin / "scripts/skillbom").read_text()
+    import re
+    assert not re.search(r"\b(pip|pip3|uv|uvx|curl|wget)\b", launcher), "the launcher must not download anything"
+    code = ("import sys; sys.path[:0] = [sys.argv[1], sys.argv[2]]; import yaml, skillbom.cli; "
+            "assert 'vendor' in yaml.__file__; print(yaml.__file__)")
+    out = subprocess.run([sys.executable, "-S", "-c", code, str(plugin / "src"), str(plugin / "vendor")],
+                         capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    assert subprocess.run([str(plugin / "scripts/skillbom"), "--version"], capture_output=True, text=True).stdout.startswith("skillbom ")

@@ -1,6 +1,6 @@
 [project]
 name = "skillbom"
-version = "0.1.0"
+version = "0.1.1"
 description = "Scan installed agent skills and plugins and report their licenses as a Skill BOM"
 requires-python = ">=3.9"
 license = {text = "Apache-2.0"}

@@ -24,7 +24,7 @@ In Claude Code, the `skillbom` plugin runs the same scanner through `/skillbom:a
 |---|---|---|
 | Claude Code | `~/.claude/skills/*/` | `user` |
 | | `~/.claude/skills/synced/<org>_<account>/*/` (skills synced from claude.ai) | `user` |
-| | installed plugins from `~/.claude/plugins/installed_plugins.json` (falling back to `plugins/cache/`), with `enabled` from `settings.json` → `enabledPlugins` | as installed |
+| | installed plugins from `~/.claude/plugins/installed_plugins.json` (falling back to `plugins/cache/`) (`settings.json` isn't read, so whether a plugin is enabled isn't recorded: that file can hold credentials) | as installed |
 | Claude Code, managed | `/Library/Application Support/ClaudeCode` (macOS), `/etc/claude-code` (Linux), scanned recursively | `managed` |
 | Codex CLI | `$CODEX_HOME/skills` or `~/.codex/skills` | `user` |
 | Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/` | `project` |

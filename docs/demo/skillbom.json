@@ -1,9 +1,9 @@
 {
   "bomFormat": "SkillBOM",
   "specVersion": "0.1",
-  "serialNumber": "urn:uuid:7fc8dbe1-7f23-415d-a7b6-c76ef4855c33",
+  "serialNumber": "urn:uuid:83564202-44a1-45f6-9bea-35344864b851",
   "metadata": {
-    "timestamp": "2026-10-22T23:49:08Z",
+    "timestamp": "2026-10-23T09:15:17Z",
     "tool": {
       "name": "skillbom",
       "version": "0.1.0"
@@ -44,9 +44,9 @@
       ]
     },
     "mergedFrom": [
-      "urn:uuid:7d1fb6e8-ab92-430e-a673-f68b9ae2da2b",
-      "urn:uuid:b0259439-33cc-4e88-af0e-9666379f9e5f",
-      "urn:uuid:28d1f401-c198-4c9e-b2e8-3dc9b0b180db"
+      "urn:uuid:3d569495-3c73-473c-ab2d-56527d92bd62",
+      "urn:uuid:de43f5a9-8764-4b76-8682-2456f42460f3",
+      "urn:uuid:5b6286f3-3a43-4f08-95dd-c4a5391cf424"
     ],
     "policy": {
       "id": "acme-skill-policy",
@@ -381,15 +381,13 @@
           "host": "laptop-01",
           "platform": "claude-code",
           "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0",
-          "installScope": "managed",
-          "enabled": true
+          "installScope": "managed"
         },
         {
           "host": "laptop-02",
           "platform": "claude-code",
           "path": "~/.claude/plugins/cache/acme-internal/devtools/1.4.0",
-          "installScope": "managed",
-          "enabled": true
+          "installScope": "managed"
         }
       ]
     },
