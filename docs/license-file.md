@@ -34,6 +34,7 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are
 
 - **Name.** The file MUST be named `skill-license.yaml`, `skill-license.yml` or `skill-license.json`. A directory SHOULD contain only one of them. If it contains more than one, consumers SHOULD use the YAML file and report the duplicate.
 - **Location.** The file MUST be placed in the subject's root directory: next to `SKILL.md` for a skill, or next to `.claude-plugin/plugin.json` (or the runtime's equivalent manifest) for a plugin.
+- **Creating one.** Write it by hand from the [example](#example), or let the reference tool fill it in, including the content hash: `skillbom init <folder>` (see the [scanner reference](scanner.md#creating-a-license-file)).
 - **Nesting.** A plugin's file covers the plugin as a whole. A skill inside a plugin MAY carry its own file, which takes precedence for that skill. The plugin's file SHOULD then list that skill under `includes`.
 
 ## Example

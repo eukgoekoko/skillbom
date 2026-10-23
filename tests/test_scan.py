@@ -380,3 +380,54 @@ def test_cyclonedx_export_of_sample_bom():
     for name in ("examples/skill-bom/acme-2026-10.json", "docs/demo/skillbom.json"):
         cdx = to_cyclonedx(json.loads((ROOT / name).read_text()))
         assert not list(_cyclonedx_validator().iter_errors(cdx)), name
+
+
+def _license_validator():
+    return Draft202012Validator(json.loads((ROOT / "schema/skill-license.schema.json").read_text()))
+
+
+def test_init_creates_valid_declared_license(tmp_path, capsys):
+    import yaml
+    import subprocess
+    repo = tmp_path / "repo"
+    write(repo / "LICENSE", MIT)
+    s = skill(repo / "skills/hello", "hello", "version: 1.2.0\n")
+    # init looks for inherited licenses up to the git root (outside git: only the folder itself).
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    assert main(["init", str(s), "--publisher", "Jane Doe", "--copy-license"]) == 0
+    doc = yaml.safe_load((s / "skill-license.yaml").read_text())
+    assert not list(_license_validator().iter_errors(doc))
+    assert doc["subject"]["id"] == "jane-doe/hello" and doc["subject"]["version"] == "1.2.0"
+    assert doc["license"] == {"expression": "MIT", "text": "LICENSE"}
+    assert (s / "LICENSE").read_text() == MIT  # copied, so the text travels with the skill
+    assert doc["subject"]["contentHash"]["value"] == content_hash(s)
+
+    # The scanner now reads it as a declared license with a matching hash.
+    bom = scan(tmp_path, "--no-home", "--root", str(repo))
+    c = by_name(bom, "hello")
+    assert c["license"]["status"] == "declared" and c["integrity"] == "match" and c["id"] == "jane-doe/hello"
+
+    # Editing the skill breaks the hash; --update refreshes it and keeps the rest.
+    (s / "SKILL.md").write_text((s / "SKILL.md").read_text() + "\nMore.\n")
+    assert by_name(scan(tmp_path, "--no-home", "--root", str(repo)), "hello")["integrity"] == "modified"
+    assert main(["init", str(s), "--update", "--version", "1.3.0"]) == 0
+    doc2 = yaml.safe_load((s / "skill-license.yaml").read_text())
+    assert doc2["subject"]["version"] == "1.3.0" and doc2["license"] == doc["license"]
+    assert by_name(scan(tmp_path, "--no-home", "--root", str(repo)), "hello")["integrity"] == "match"
+
+
+def test_init_refusals(tmp_path, capsys):
+    s = skill(tmp_path / "s", "s")
+    assert main(["init", str(s), "--publisher", "x"]) == 2  # no license anywhere
+    assert "--license" in capsys.readouterr().err
+    assert main(["init", str(s), "--publisher", "x", "--license", "Proprietary stuff"]) == 2
+    assert main(["init", str(s), "--publisher", "x", "--license", "LicenseRef-team"]) == 2
+    assert "offers" in capsys.readouterr().err
+    assert main(["init", str(s), "--license", "MIT"]) == 2  # no publisher (no git remote)
+    assert main(["init", str(s), "--update"]) == 2  # nothing to update
+    assert main(["init", str(tmp_path / "missing-dir-is-not-a-skill")]) == 2
+    assert main(["init", str(s), "--publisher", "x", "--license", "MIT", "--dry-run"]) == 0
+    assert not (s / "skill-license.yaml").exists()  # dry run writes nothing
+    assert main(["init", str(s), "--publisher", "x", "--license", "MIT"]) == 0
+    assert main(["init", str(s), "--publisher", "x", "--license", "MIT"]) == 2  # won't overwrite
+    assert "--update" in capsys.readouterr().err

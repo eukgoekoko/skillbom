@@ -83,6 +83,22 @@ To apply the [grant rules](license-file.md#grants) to open-source licenses, the 
 - **Conflicting detections:** when machines detect different licenses for the same content (for example, one copy sits in a repository with a LICENSE and another doesn't), the stronger status wins (declared > inferred > unknown), then the higher confidence. License findings are taken only from the scan whose detection won, so stale findings from a weaker scan are dropped. Other findings are deduplicated.
 - **Policies:** if the inputs used different policies, the CLI warns and the merged BOM records none.
 
+## Creating a license file
+
+`skillbom init` writes a [skill license file](license-file.md) for a skill or plugin you author:
+
+```sh
+skillbom init skills/my-skill --dry-run           # preview
+skillbom init skills/my-skill --copy-license      # write it; copy an inherited LICENSE into the folder
+skillbom init skills/my-skill --update            # after editing the skill: refresh the content hash
+```
+
+- **Values filled in:** the id (`publisher/name`, from `--publisher`, the plugin's author or the git remote's owner), the version (declared, or `0.1.0`), the license (what the scanner detects for the folder), the license text (the folder's own license file, or the inherited one), and the content hash.
+- **License lookup:** inherited licenses are searched up to the git repository root. Outside a git repository, only the folder itself is checked.
+- **What it won't do:** guess a license that isn't a standard one, overwrite an existing file (use `--update`), or write commercial offers. Those are written by hand.
+
+In Claude Code, the plugin's `/skillbom:license-file` skill walks you through the same steps.
+
 ## CycloneDX export
 
 `skillbom export` converts a Skill BOM to CycloneDX 1.6 JSON following the [mapping in the specification](skill-bom.md#mapping-to-cyclonedx). `scan` and `merge` can write it directly with `--cyclonedx FILE`. The output is tested against the official CycloneDX 1.6 JSON schema. The full license evidence stays in the Skill BOM; the export carries the winning source and its confidence.

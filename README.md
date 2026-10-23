@@ -49,6 +49,14 @@ skillbom scan -o bom.json --html report.html
 
 Both need Python 3.9 or newer.
 
+**For skill authors:** give your skill a machine-readable license that travels with the folder:
+
+```sh
+skillbom init path/to/your-skill --copy-license   # writes skill-license.yaml
+```
+
+In Claude Code: `/skillbom:license-file`.
+
 ## What it does
 
 | | |
