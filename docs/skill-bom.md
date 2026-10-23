@@ -1,118 +1,297 @@
-# Skill BOM report — draft 0.1
+# Skill BOM — draft 0.1
 
-Schema: [`schema/skill-bom.schema.json`](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-bom.schema.json) · Example: [`examples/skill-bom/acme-2026-10.json`](https://github.com/eukgoekoko/skillbom/blob/main/examples/skill-bom/acme-2026-10.json)
+**Status:** draft, open for feedback · **Version:** 0.1 · **Updated:** 2026-10-23 · **Schema:** [`skill-bom.schema.json`](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-bom.schema.json) · **Feedback:** [open an issue](https://github.com/eukgoekoko/skillbom/issues)
 
-The scanner's output is an inventory of every skill and plugin installed across an organization, with license status, purchase coverage and findings. Its shape follows CycloneDX (`components` + `dependencies`), so it can later be exported to CycloneDX or SPDX for tools that already read SBOMs.
+A Skill BOM is a bill of materials for agent skills and plugins: a JSON inventory of every skill and plugin found on one or more machines, with where each came from, the license it is under, the evidence for that license, and any findings a compliance team should act on.
 
-## Structure
+This page specifies the format. How the reference scanner produces it is described separately in the [skillbom scanner reference](scanner.md).
 
-- **`metadata`**: when the scan ran, which tool produced it, which hosts and directories were scanned, and the org policy that was applied (allowed and denied licenses).
-- **`components`**: one entry per distinct content hash. The same skill at the same hash on 50 machines is one component with 50 `installations`. A locally modified copy has a different hash, so it becomes a separate component with `integrity: modified`.
-- **`dependencies`**: containment and derivation edges (a plugin contains a skill; one skill is a modified copy of another).
-- **`findings`**: rule violations, each pointing at component `bomRef`s.
-- **`summary`**: counts for a dashboard.
+## Why a separate BOM format
 
-## Where the scanner looks
+Software bills of materials (SBOMs) such as [CycloneDX](https://cyclonedx.org/) and [SPDX](https://spdx.dev/) describe packages and their dependencies. Agent skills raise questions those formats don't model:
+- **Where the license came from.** Skill licenses are often inferred from a repository root or a parent plugin rather than declared, so each license needs its evidence and a status.
+- **Where it's installed.** The same skill sits on many machines in different scopes: user, project, managed by the organization.
+- **Whether the company may use it.** The answer depends on commercial entitlements, not just on the license id.
 
-Implemented in `plugins/skillbom/src/skillbom/discover.py`:
+The Skill BOM keeps CycloneDX's overall shape (`components` plus `dependencies`) and adds those parts, so it can be [mapped to CycloneDX](#mapping-to-cyclonedx) for tools that already read SBOMs.
 
-| runtime | locations |
+## Conventions
+
+The key words **MUST**, **MUST NOT**, **SHOULD** and **MAY** are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Terms such as *licensee*, *offer* and *entitlement* are defined in the [skill license file specification](license-file.md#conventions).
+
+## Example
+
+A trimmed BOM with one host, one component and one finding:
+
+```json
+{
+  "bomFormat": "SkillBOM",
+  "specVersion": "0.1",
+  "serialNumber": "urn:uuid:27ab0c9c-39f6-484f-8be4-d2a5ccff4d2c",
+  "metadata": {
+    "timestamp": "2026-10-22T23:18:11Z",
+    "tool": { "name": "skillbom", "version": "0.1.0" },
+    "scope": { "organization": "Acme Analytics", "hosts": [{ "id": "laptop-02", "os": "darwin" }] },
+    "policy": { "id": "acme-skill-policy", "deniedLicenses": ["GPL-*", "AGPL-*"] }
+  },
+  "components": [
+    {
+      "bomRef": "skill-1f0c7a2e9b41",
+      "kind": "skill",
+      "name": "code-tour",
+      "source": { "type": "local" },
+      "contentHash": { "alg": "sha256", "value": "1f0c7a2e9b41d3c0e6a8b5f4c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3" },
+      "integrity": "unverified",
+      "license": {
+        "status": "inferred",
+        "expression": "PolyForm-Noncommercial-1.0.0",
+        "evidence": [
+          { "source": "text-match", "path": "~/.claude/skills/code-tour/LICENSE",
+            "expression": "PolyForm-Noncommercial-1.0.0", "confidence": 0.9 }
+        ]
+      },
+      "entitlement": { "status": "unknown" },
+      "installations": [
+        { "host": "laptop-02", "platform": "claude-code", "path": "~/.claude/skills/code-tour", "installScope": "user" }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "rule": "commercial-use-restricted",
+      "severity": "high",
+      "components": ["skill-1f0c7a2e9b41"],
+      "message": "'code-tour' is licensed PolyForm-Noncommercial-1.0.0, which does not permit commercial use.",
+      "remediation": "Obtain a commercial license from the author or stop using it for work."
+    }
+  ],
+  "summary": {
+    "components": 1,
+    "installations": 1,
+    "hosts": 1,
+    "byLicenseStatus": { "declared": 0, "inferred": 1, "unknown": 0 },
+    "findingsBySeverity": { "critical": 0, "high": 1, "medium": 0, "low": 0, "info": 0 }
+  }
+}
+```
+
+A complete BOM merged from three machines: [sample report](demo/report.html), [its JSON](demo/skillbom.json).
+
+## Field reference
+
+### Top level
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `bomFormat` | `"SkillBOM"` | yes | Identifies the format. |
+| `specVersion` | string | yes | The version of this specification. For this draft: `"0.1"`. |
+| `serialNumber` | string | yes | A unique id for this BOM: `urn:uuid:<uuid>`. |
+| `metadata` | object | yes | When, by what and over which scope the BOM was produced. |
+| `components` | array | yes | The skills and plugins found. |
+| `dependencies` | array | no | Relations between components. |
+| `findings` | array | no | Issues found, each pointing at components. |
+| `summary` | object | yes | Counts for dashboards. |
+
+### `metadata`
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `timestamp` | date-time | yes | When the BOM was produced (UTC). |
+| `tool` | object | yes | `name` and `version` of the producing tool. |
+| `scope` | object | yes | `organization` (optional) and `hosts`: what was scanned. |
+| `policy` | object | no | The license policy findings were evaluated against: `id`, `version`, `allowedLicenses`, `deniedLicenses`. |
+| `mergedFrom` | array of strings | no | The `serialNumber`s of the BOMs this one was merged from. |
+
+Each entry in `scope.hosts`:
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `id` | string | yes | A host identifier. Producers SHOULD pseudonymize it unless the organization supplies its own names. |
+| `os` | string | no | Operating system. |
+| `platforms` | array | no | Agent runtimes found on the host, such as `claude-code` or `codex-cli`. |
+| `roots` | array | no | Directories that were scanned. |
+
+### `components[]`
+
+One entry per distinct content. The same skill with the same content on 50 machines is **one** component with 50 installations. A locally modified copy has different content, so it is a separate component.
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `bomRef` | string | yes | Identifier, unique within the BOM. It SHOULD be derived from `kind` and `contentHash`, so the same content gets the same `bomRef` in every BOM. That is what makes BOMs mergeable. |
+| `kind` | `skill` · `plugin` · `command` · `agent` · `hook` · `mcp-server` · `marketplace` | yes | What the component is. |
+| `id` | string | no | `<publisher>/<name>`, from the component's skill license file, if it has one. |
+| `name` | string | yes | Display name. |
+| `version` | string | no | Version, if declared. |
+| `publisher` | string | no | Author or publisher, if declared. |
+| `source` | object | yes | Where it came from: `type` (`marketplace`, `git`, `registry`, `local` or `unknown`), plus optional `marketplace`, `url` and `ref`. |
+| `contentHash` | object | yes | Computed as in the [license file specification](license-file.md#content-hash). |
+| `integrity` | `match` · `modified` · `unverified` | no | Whether `contentHash` matches the hash declared in the component's skill license file, or `unverified` if none is declared. |
+| `license` | object | yes | See below. |
+| `entitlement` | object | no | See below. |
+| `installations` | array | yes | Where it is installed. See below. |
+
+`license`:
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `status` | `declared` · `inferred` · `unknown` | yes | `declared`: taken from a skill license file. `inferred`: from other evidence. `unknown`: no license found. |
+| `expression` | string | yes | An SPDX expression, or `NOASSERTION` when unknown. |
+| `evidence` | array | no | Every piece of evidence the producer considered, including evidence that lost. Each entry has `source` (required), and optionally `path`, `expression`, `confidence` (0–1) and `value`, the raw declared text when it isn't valid SPDX. |
+
+Evidence `source` values: `skill-license-file`, `plugin-manifest`, `skill-frontmatter`, `skill-body` and `text-match` are evidence from the component itself; `parent-manifest`, `repo-license-file` and `marketplace-metadata` are evidence it inherits from its surroundings.
+
+Producers use three `LicenseRef-` ids with fixed meanings:
+
+| id | meaning |
 |---|---|
-| Claude Code | `~/.claude/skills/*/` (user), `~/.claude/skills/synced/<org>_<account>/*/` (synced from claude.ai), installed plugins from `~/.claude/plugins/installed_plugins.json` (falling back to `plugins/cache/`), with `enabled` taken from `settings.json` → `enabledPlugins` |
-| Claude Code, managed | `/Library/Application Support/ClaudeCode` (macOS), `/etc/claude-code` (Linux), scanned recursively |
-| Codex CLI | `$CODEX_HOME/skills` or `~/.codex/skills` |
-| Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/` |
-| Anything else (`--root DIR`) | recursive: a directory with `.claude-plugin/plugin.json` is a plugin; one with `SKILL.md` is a skill |
-| Catalogs (`--include-catalogs`) | plugins that marketplace clones (`~/.claude/plugins/marketplaces/*`) ship locally, even when not installed |
+| `LicenseRef-proprietary` | "All rights reserved" or explicitly proprietary terms were found. |
+| `LicenseRef-custom` | A license text exists but doesn't match a known license; a human needs to read it. |
+| `LicenseRef-commons-clause` | The Commons Clause, combined with its base license, e.g. `Apache-2.0 AND LicenseRef-commons-clause`. |
 
-Skills under a plugin's `skills/*/` become separate components with a `contains` edge from the plugin.
+`entitlement`:
 
-`installScope` records where an installation came from: `managed` (pushed by the org), `user`, `project` (checked into a repo), `plugin` (nested inside a plugin), `local` (`--root`), or `catalog` (available, not installed).
-
-## Merging scans
-
-Each machine runs `skillbom scan` (optionally with `--host-id` to use the organization's own machine names instead of the pseudonymous default), and `skillbom merge` combines the BOMs:
-
-- **Components** line up across hosts because `bomRef` is derived from the content hash. Their installations are unioned.
-- **When hosts detect different licenses** for the same content (for example, one copy sits in a repository with a LICENSE and another doesn't), the detection with the stronger status (declared > inferred > unknown) and then the higher confidence is kept. License-derived findings are taken only from the scan whose detection was kept. Other findings are deduplicated.
-- **Metadata:** `metadata.mergedFrom` lists the input `serialNumber`s, and `summary.hosts` counts distinct hosts. If the inputs were scanned with different policies, the merged BOM records no policy and the CLI warns.
-
-## License detection
-
-`license.status` is `declared` when the resolved expression comes from a skill-license file, `inferred` when it comes from other evidence, and `unknown` otherwise. Every source the scanner consults is recorded in `evidence`, together with the raw `value` when the declared text isn't a valid SPDX expression.
-
-| source | where | confidence |
-|---|---|---|
-| `skill-license-file` | `skill-license.yaml` in the component directory | 1.0 |
-| `plugin-manifest` | `license` in the component's own `.claude-plugin/plugin.json` or `package.json` | 0.9 if valid SPDX |
-| `skill-frontmatter` | `license:` in the SKILL.md frontmatter | 0.9 if valid SPDX |
-| `skill-body` | the first line under a `## License` heading in the SKILL.md body | ≤ 0.8 |
-| `text-match` | LICENSE/COPYING files in the component directory, or a file the declared value names ("SEE LICENSE IN …", "terms in LICENSE.txt") | 0.9 (GNU family 0.85); "all rights reserved"/"proprietary" text → `LicenseRef-proprietary` at 0.5 |
-| `parent-manifest` | `license` in a `.claude-plugin/plugin.json` or `package.json` of a parent directory | declared value × 0.8 |
-| `repo-license-file` | license files in a parent directory | text-match × 0.8 |
-| `marketplace-metadata` | `license` in the catalog's `marketplace.json` entry | ≤ 0.7 |
-
-Parent directories are searched from the nearest upward, up to the scan boundary (marketplace clone, project root, or scan root). The first level that declares anything wins, and at that level a manifest is preferred over a license file. So a plugin that declares MIT inside an AGPL repository is MIT.
-
-License texts are identified in this order:
-1. **GNU licenses by their heading.** The GPL-3.0 text mentions the AGPL in section 13, so phrase matching would misfire. `-or-later` is reported only when an "any later version" notice appears before the license's own "How to Apply" appendix.
-2. **A recognized title line** ("MIT License", "PolyForm Noncommercial License 1.0.0").
-3. **Key phrases** anywhere in the text.
-
-Declared values that aren't SPDX are parsed in three steps:
-1. A free-text license name ("BSD-3-Clause license", "GPLv3", "MIT + Commons Clause", Creative Commons URLs, npm's `UNLICENSED`) resolves through the `names` table in `spdx-grants.yaml`, at confidence 0.8.
-2. Otherwise, a value mentioning "proprietary" resolves to `LicenseRef-proprietary` at 0.6.
-3. Any license file the value names is followed.
-
-A title match counts 0.9 when the license's key phrases confirm it and 0.6 otherwise, which covers pointer texts such as "MIT License – see repository root LICENSE". A text that matches no heading, title or phrases resolves to `LicenseRef-custom` at 0.3: a license exists, but it isn't one we know.
-
-**Resolution.** The component's own evidence (the first five sources) always beats inherited evidence (`parent-manifest`, `repo-license-file`, `marketplace-metadata`), because a plugin's own LICENSE overrides the license of the repository it sits in. Inherited evidence is used only when the component itself says nothing. Within a tier, the highest confidence wins, with ties broken in table order.
-
-Content is deduplicated by hash. When the same content shows up in several places, the license detected at the first occurrence is kept. Known limitation: an installed plugin's copy lives outside its marketplace clone, so it doesn't inherit the clone's repo LICENSE, while the catalog copy does.
-
-## Entitlement status
-
-The scanner resolves each non-open component against the purchase registry:
+| field | type | required | meaning |
+|---|---|---|---|
+| `status` | see below | yes | Whether the organization may use the component as installed. |
+| `registryRef`, `offer` | string | no | The purchase record and the `LicenseRef-` offer it covers. |
+| `seatsLicensed`, `seatsInUse` | integer | no | For seat-based offers. |
+| `expires` | date | no | When the entitlement ends. |
 
 | status | meaning |
 |---|---|
-| `not-required` | Open license, or the org's own component. |
+| `not-required` | An open license permits commercial use, or the component is the organization's own. |
 | `covered` | A valid entitlement covers this use. |
-| `insufficient` | An entitlement exists but doesn't cover this use: too few seats, wrong scope, or a missing grant. |
+| `insufficient` | An entitlement exists but doesn't cover this use: too few seats, the wrong scope, or a missing grant. |
 | `missing` | A commercial license is required and none is on record. |
-| `unknown` | The license is unknown, so coverage can't be determined. |
+| `unknown` | Coverage can't be determined, for example because the license is unknown or no purchase records are available. |
+
+Each entry in `installations`:
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `host` | string | yes | A `metadata.scope.hosts[].id`. |
+| `path` | string | yes | Install location. Producers SHOULD write paths under the user's home directory as `~/…`. |
+| `installScope` | see below | yes | How the component got there. |
+| `platform` | string | no | The agent runtime it belongs to. |
+| `enabled` | boolean | no | Whether the runtime has it enabled, where that is known. |
+
+| `installScope` | meaning |
+|---|---|
+| `managed` | Deployed by the organization. |
+| `user` | Installed by the user for themselves. |
+| `project` | Checked into a project repository. |
+| `plugin` | Nested inside an installed plugin. |
+| `local` | Found in a directory the scan was pointed at. |
+| `catalog` | Available in a downloaded marketplace catalog, but not installed. |
+
+### `dependencies[]`
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `ref` | string | yes | A `bomRef`. |
+| `dependsOn` | array of strings | yes | The `bomRef`s it relates to. |
+| `relation` | `contains` · `modified` · `derived` · `references` | no | E.g. a plugin `contains` its skills. |
+
+### `findings[]`
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `id` | string | yes | Unique within the BOM, e.g. `F1`. |
+| `rule` | string | yes | A rule id from the [rule catalog](#rule-catalog). |
+| `severity` | `critical` · `high` · `medium` · `low` · `info` | yes | How urgent it is. |
+| `components` | array of strings | yes | The affected `bomRef`s. |
+| `message` | string | yes | A human-readable description. |
+| `remediation` | string | no | What to do about it. |
+
+### `summary`
+
+| field | type | required | meaning |
+|---|---|---|---|
+| `components` | integer | yes | Number of components. |
+| `installations` | integer | no | Number of installations across all components. |
+| `hosts` | integer | no | Number of distinct hosts with at least one installation. |
+| `byKind`, `byLicense`, `byEntitlement` | objects | no | Counts per kind, per license expression and per entitlement status. |
+| `byLicenseStatus` | object | yes | Counts for `declared`, `inferred` and `unknown`. |
+| `findingsBySeverity` | object | yes | Counts per severity. |
 
 ## Rule catalog
 
-| rule | default severity | trigger | implemented |
-|---|---|---|---|
-| `license-denied` | critical | The expression has no choice that the policy allows. | yes |
-| `entitlement-missing` | high | A commercial-only license with no entitlement. | needs registry |
-| `entitlement-insufficient` | high | Seats exceeded, wrong scope, or a needed grant absent. | needs registry |
-| `entitlement-expired` | high | A subscription or fixed term has passed `expires`. | needs registry |
-| `commercial-use-restricted` | high | No choice in the expression grants `commercialUse` (e.g. CC-BY-NC-4.0 alone). | yes |
-| `composition-incompatible` | high | A plugin's `includes` fails the composition check (see license-file.md). Checked for mapped SPDX licenses; `LicenseRef-` includes need the registry. | partly |
-| `license-unknown` | medium | No license evidence at all. | yes |
-| `license-invalid` | medium | A skill-license file exists but can't be read or its expression isn't valid SPDX. | yes |
-| `license-review` | medium | The license is `LicenseRef-custom`: a license text exists but isn't a known license. | yes |
-| `license-conflict` | medium | The component's own evidence resolves to different expressions (confidence ≥ 0.5). | yes |
-| `obligation-unmet` | low | An attribution or license file is missing in a bundled copy. | not yet |
-| `integrity-modified` | info | The hash differs from the one declared in the skill-license file. | yes |
+Producers SHOULD use these rule ids where they apply, so findings mean the same thing across tools. Severities are defaults; an organization's policy MAY override them.
 
-Severities are defaults. A policy file can override them:
+| rule | default severity | raised when |
+|---|---|---|
+| `license-denied` | critical | No choice in the license expression is allowed by the policy. |
+| `entitlement-missing` | high | A commercial-only license with no entitlement on record. |
+| `entitlement-insufficient` | high | An entitlement exists but doesn't cover the use: seats, scope or a needed grant. |
+| `entitlement-expired` | high | A subscription or fixed term has ended. |
+| `commercial-use-restricted` | high | No choice in the expression permits commercial use, e.g. `CC-BY-NC-4.0` alone. |
+| `composition-incompatible` | high | A plugin's `includes` fails the [composition check](license-file.md#composition). |
+| `license-unknown` | medium | No license evidence at all. |
+| `license-invalid` | medium | A skill license file exists but can't be read, or isn't valid. |
+| `license-review` | medium | The license is `LicenseRef-custom` and needs a human to read it. |
+| `license-conflict` | medium | The component's own evidence points to different licenses. |
+| `obligation-unmet` | low | A bundled copy is missing a required attribution or license file. |
+| `integrity-modified` | info | The content doesn't match the hash declared in the skill license file. |
 
-```yaml
-id: acme-skill-policy
-version: "2026-09"
-allowedLicenses: [MIT, Apache-2.0, BSD-*, "LicenseRef-*"]   # fnmatch globs; empty = allow all
-deniedLicenses: [GPL-*, AGPL-*]                                # wins over allowed
-severities: {license-unknown: high}
-```
+## Merging
 
-Entitlement status is `not-required` when some choice grants commercial use. Until a purchase registry exists, everything else is `unknown`.
+A BOM MAY be merged from per-machine BOMs. A merged BOM:
+- MUST contain each content once, with the installations of all inputs.
+- MUST list its inputs in `metadata.mergedFrom`.
+- MUST NOT record a `policy` if its inputs were evaluated against different policies.
+
+How conflicting license evidence across machines is resolved is up to the producer; the reference scanner's approach is described [in its reference](scanner.md#merging-scans).
+
+## Mapping to CycloneDX
+
+*Proposed; not yet implemented as an export.* A Skill BOM maps onto [CycloneDX 1.6](https://cyclonedx.org/docs/1.6/json/) as follows:
+
+| Skill BOM | CycloneDX |
+|---|---|
+| `bomFormat`, `specVersion` | `bomFormat: "CycloneDX"`, `specVersion: "1.6"` |
+| `serialNumber` | `serialNumber` |
+| `metadata.timestamp`, `metadata.tool` | `metadata.timestamp`, `metadata.tools.components[]` |
+| component `bomRef`, `name`, `version`, `publisher` | component `bom-ref`, `name`, `version`, `publisher` |
+| component `kind` | `type: "application"`, plus property `skillbom:kind` |
+| `contentHash` | `hashes: [{ alg: "SHA-256", content }]` |
+| `license.expression` | `licenses: [{ expression }]` |
+| `source.url`, `source.ref` | `externalReferences: [{ type: "vcs", url }]` |
+| `license.status`, `evidence`, `integrity`, `entitlement`, `installations` | properties in the `skillbom:` namespace |
+| `dependencies` | `dependencies` |
+| `findings` | `annotations`, with the affected components as `subjects` |
+
+## Conformance
+
+**A conforming BOM:**
+- MUST validate against the [JSON Schema](https://github.com/eukgoekoko/skillbom/blob/main/schema/skill-bom.schema.json) for its `specVersion`.
+- MUST give every `bomRef` referenced by `dependencies` or `findings` a matching component.
+- MUST record every piece of license evidence it relied on in `evidence`.
+
+**A conforming producer:**
+- MUST NOT mark a license `declared` unless it comes from a skill license file.
+- SHOULD pseudonymize host ids and shorten home-directory paths to `~`, so BOMs can be shared without exposing user names.
+
+**A conforming consumer:**
+- MUST treat license categories and findings as a summary of license texts, not as legal advice.
+
+## Privacy
+
+A BOM describes machines and what is installed on them. It contains file paths, host identifiers, publisher names and license evidence. Producers SHOULD keep it local by default; an organization decides whether and with whom to share it.
+
+## Versioning
+
+Same scheme as the [license file](license-file.md#versioning): `MAJOR.MINOR`. 0.x drafts may change incompatibly; from 1.0 on, minor versions only add optional fields.
 
 ## Open questions
 
-- Seat counting: by distinct OS user, by Claude account, or by actual invocation (which needs telemetry)?
-- Host and user pseudonymization for reports shared with vendors.
-- Output formats beyond JSON: an HTML/PDF audit report, and a CycloneDX export mapping.
+- **Seat counting:** by distinct OS user, by agent account, or by actual use (which would need telemetry)?
+- **Sharing:** how should BOMs be pseudonymized when they are shared with vendors?
+- **Exports:** a CycloneDX export implementing the mapping above, and an SPDX one.
+
+Comments are welcome [as GitHub issues](https://github.com/eukgoekoko/skillbom/issues).
+
+## Changelog
+
+- **2026-10-23:** Split into this format specification and the [scanner reference](scanner.md). Added a field reference, an inline example, `LicenseRef-` ids with fixed meanings, conformance, privacy, versioning and a proposed CycloneDX mapping. No format changes.
+- **2026-10-22:** Draft 0.1.

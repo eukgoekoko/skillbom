@@ -81,7 +81,7 @@ license:
       grants: { commercialUse: true, modify: true, compose: internal-only }
 ```
 
-See the [license-file spec](docs/license-file.md), the [Skill BOM spec](docs/skill-bom.md), the [JSON Schemas](schema/) and the [examples](examples/).
+See the [license-file spec](docs/license-file.md), the [Skill BOM spec](docs/skill-bom.md), the [scanner reference](docs/scanner.md), the [JSON Schemas](schema/) and the [examples](examples/).
 
 ## Repository layout
 

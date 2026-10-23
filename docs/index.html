@@ -66,7 +66,7 @@ h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.02em;line-height:1.15;margi
 .spec ul{margin:0 0 24px;padding-left:20px;color:var(--text-2)}
 .spec li{margin-bottom:10px}
 .k{color:var(--accent-ink)}.c{color:var(--muted)}
-.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.docs{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
 .doc{display:block;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px;color:var(--text)}
 .doc:hover{text-decoration:none;border-color:var(--accent)}
 .doc b{display:block;margin-bottom:6px}
@@ -213,7 +213,8 @@ footer .wrap{display:flex;justify-content:space-between;align-items:flex-start;g
     <p class="sub">Draft 0.1. Feedback and issues are welcome on GitHub.</p>
     <div class="docs">
       <a class="doc" href="license-file.html"><b>License file spec</b><span>Semantics of grants and offers, the content hash, and the composition check.</span></a>
-      <a class="doc" href="skill-bom.html"><b>Skill BOM spec</b><span>Report format, where the scanner looks, detection sources and confidences, and the rule catalog.</span></a>
+      <a class="doc" href="skill-bom.html"><b>Skill BOM spec</b><span>The report format: field reference, rule catalog, and a mapping to CycloneDX.</span></a>
+      <a class="doc" href="scanner.html"><b>Scanner reference</b><span>Where skillbom looks, how it works out licenses, merging scans, and policies.</span></a>
       <a class="doc" href="research/corpus-2026-10.html"><b>Corpus study</b><span>How 62,704 public skills are licensed, the method, and its limitations.</span></a>
     </div>
   </div>

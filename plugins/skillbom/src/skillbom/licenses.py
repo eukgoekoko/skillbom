@@ -12,7 +12,7 @@ import yaml
 from skillbom import spdx, textmatch
 from skillbom.discover import Candidate, read_json
 
-# Tie-break order when confidences are equal (docs/skill-bom.md).
+# Tie-break order when confidences are equal (docs/scanner.md).
 SOURCE_ORDER = ["skill-license-file", "plugin-manifest", "skill-frontmatter", "skill-body",
                 "text-match", "parent-manifest", "repo-license-file", "marketplace-metadata"]
 INHERITED_SOURCES = {"parent-manifest", "repo-license-file", "marketplace-metadata"}

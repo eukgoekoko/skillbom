@@ -320,3 +320,14 @@ license:
   offers: [{id: LicenseRef-x, scope: {licensee: team}, term: {type: subscription}, grants: {}}]
 """)
     assert list(Draft202012Validator(schema).iter_errors(doc))
+
+
+def test_bom_spec_example_is_valid():
+    """The JSON example in docs/skill-bom.md validates, and its references resolve."""
+    import re
+    schema = json.loads((ROOT / "schema/skill-bom.schema.json").read_text())
+    [block] = re.findall(r"```json\n(.*?)```", (ROOT / "docs/skill-bom.md").read_text(), re.S)
+    bom = json.loads(block)
+    assert not list(Draft202012Validator(schema).iter_errors(bom))
+    refs = {c["bomRef"] for c in bom["components"]}
+    assert all(set(f["components"]) <= refs for f in bom["findings"])

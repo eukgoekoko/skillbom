@@ -196,7 +196,7 @@ An offer always permits *using* the subject, so `internalUse` and `commercialUse
 
 **The license text is binding.** The grants are a machine-readable summary for tools. When they disagree with `termsUrl` or `license.text`, the text wins, and consumers SHOULD report the mismatch.
 
-For licenses identified by SPDX id, consumers map the license to the same grant vocabulary to apply these rules. MIT, for example, grants everything, with the `attribution` and `keep-license-file` obligations. The [skillbom scanner](skill-bom.md) ships a reference mapping.
+For licenses identified by SPDX id, consumers map the license to the same grant vocabulary to apply these rules. MIT, for example, grants everything, with the `attribution` and `keep-license-file` obligations. The [skillbom scanner](scanner.md#grants-for-spdx-licenses) ships a reference mapping.
 
 ### Composition
 
