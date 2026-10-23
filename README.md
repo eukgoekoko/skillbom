@@ -5,6 +5,7 @@
 <p align="center"><strong>Know what your AI agent skills are licensed under.</strong><br><sub><code>every skill accounted for.</code></sub></p>
 
 <p align="center">
+  <a href="https://github.com/eukgoekoko/skillbom/actions/workflows/test.yml"><img alt="Tests" src="https://github.com/eukgoekoko/skillbom/actions/workflows/test.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2a78d6"></a>
   <img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-2a78d6">
   <img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-2a78d6">
@@ -14,6 +15,7 @@
 <p align="center">
   <a href="https://eukgoekoko.github.io/skillbom/">Website</a> ·
   <a href="https://eukgoekoko.github.io/skillbom/demo/report.html">Sample report</a> ·
+  <a href="docs/teams.md">For teams</a> ·
   <a href="docs/research/corpus-2026-10.md">Research</a> ·
   <a href="docs/license-file.md">License-file spec</a>
 </p>

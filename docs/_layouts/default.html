@@ -14,6 +14,7 @@
     <nav>
       <a class="logo" href="{{ '/' | relative_url }}"><img src="{{ '/assets/icon.png' | relative_url }}" alt="" width="28" height="28"><span>skill<span>bom</span></span></a>
       <ul>
+        <li><a href="{{ '/teams.html' | relative_url }}"{% if page.url contains 'teams' %} aria-current="page"{% endif %}>For teams</a></li>
         <li><a href="{{ '/license-file.html' | relative_url }}"{% if page.url contains 'license-file' %} aria-current="page"{% endif %}>License file</a></li>
         <li><a href="{{ '/skill-bom.html' | relative_url }}"{% if page.url contains 'skill-bom' %} aria-current="page"{% endif %}>Skill BOM</a></li>
         <li><a href="{{ '/scanner.html' | relative_url }}"{% if page.url contains 'scanner' %} aria-current="page"{% endif %}>Scanner</a></li>
