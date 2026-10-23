@@ -14,6 +14,8 @@ skillbom scan --no-home --root DIR                   # only DIR
 skillbom scan --host-id laptop-anna                  # your own machine name
 skillbom merge a.json b.json -o all.json --html all.html
 skillbom report bom.json -o report.html
+skillbom export bom.json -o bom.cdx.json              # CycloneDX 1.6
+skillbom scan --cyclonedx bom.cdx.json               # or straight from a scan (also: merge)
 ```
 
 In Claude Code, the `skillbom` plugin runs the same scanner through `/skillbom:audit`.
@@ -80,6 +82,10 @@ To apply the [grant rules](license-file.md#grants) to open-source licenses, the 
 - **Components** line up across machines because `bomRef` comes from the content hash. Their installations are combined.
 - **Conflicting detections:** when machines detect different licenses for the same content (for example, one copy sits in a repository with a LICENSE and another doesn't), the stronger status wins (declared > inferred > unknown), then the higher confidence. License findings are taken only from the scan whose detection won, so stale findings from a weaker scan are dropped. Other findings are deduplicated.
 - **Policies:** if the inputs used different policies, the CLI warns and the merged BOM records none.
+
+## CycloneDX export
+
+`skillbom export` converts a Skill BOM to CycloneDX 1.6 JSON following the [mapping in the specification](skill-bom.md#mapping-to-cyclonedx). `scan` and `merge` can write it directly with `--cyclonedx FILE`. The output is tested against the official CycloneDX 1.6 JSON schema. The full license evidence stays in the Skill BOM; the export carries the winning source and its confidence.
 
 ## Policies
 

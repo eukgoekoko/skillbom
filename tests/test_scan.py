@@ -331,3 +331,52 @@ def test_bom_spec_example_is_valid():
     assert not list(Draft202012Validator(schema).iter_errors(bom))
     refs = {c["bomRef"] for c in bom["components"]}
     assert all(set(f["components"]) <= refs for f in bom["findings"])
+
+
+def _cyclonedx_validator():
+    """The official CycloneDX 1.6 JSON schema (tests/fixtures/cyclonedx, Apache-2.0)."""
+    from jsonschema import Draft7Validator
+    from referencing import Registry, Resource
+    base = ROOT / "tests/fixtures/cyclonedx"
+    docs = [json.loads((base / n).read_text()) for n in ("bom-1.6.schema.json", "spdx.schema.json", "jsf-0.82.schema.json")]
+    registry = Registry().with_resources((d["$id"], Resource.from_contents(d)) for d in docs)
+    return Draft7Validator(docs[0], registry=registry)
+
+
+def test_cyclonedx_export(home, tmp_path):
+    policy = write(tmp_path / "policy.yaml", "id: test\ndeniedLicenses: [GPL-*]\n")
+    cdx_file = tmp_path / "bom.cdx.json"
+    assert main(["scan", "-q", "--home", str(home), "--policy", str(policy), "--host-id", "laptop-1",
+                 "-o", str(tmp_path / "bom.json"), "--cyclonedx", str(cdx_file)]) == 0
+    cdx = json.loads(cdx_file.read_text())
+    errors = sorted(_cyclonedx_validator().iter_errors(cdx), key=lambda e: list(e.path))
+    assert not errors, [f"{list(e.path)}: {e.message}" for e in errors[:5]]
+
+    bom = json.loads((tmp_path / "bom.json").read_text())
+    assert cdx["serialNumber"] == bom["serialNumber"] and cdx["specVersion"] == "1.6"
+    assert len(cdx["components"]) == len(bom["components"])
+    alpha = next(c for c in cdx["components"] if c["name"] == "alpha")
+    assert alpha["licenses"] == [{"expression": "MIT"}]
+    assert alpha["hashes"][0]["alg"] == "SHA-256"
+    assert alpha["evidence"]["occurrences"][0]["location"] == "laptop-1:~/.claude/skills/alpha"
+    props = {p["name"]: p["value"] for p in alpha["properties"]}
+    assert props["skillbom:kind"] == "skill" and props["skillbom:license.source"] == "skill-frontmatter"
+    beta = next(c for c in cdx["components"] if c["name"] == "beta")
+    assert "licenses" not in beta  # NOASSERTION is omitted, not exported as a license
+    texts = [a["text"] for a in cdx["annotations"]]
+    assert any(t.startswith("[critical] license-denied:") for t in texts)
+    refs = {c["bom-ref"] for c in cdx["components"]}
+    assert all(set(a["subjects"]) <= refs for a in cdx["annotations"])
+    assert all(d["ref"] in refs and set(d["dependsOn"]) <= refs for d in cdx["dependencies"])
+
+    # The export subcommand produces the same document from the saved BOM.
+    out = tmp_path / "again.cdx.json"
+    assert main(["export", str(tmp_path / "bom.json"), "-o", str(out)]) == 0
+    assert json.loads(out.read_text()) == cdx
+
+
+def test_cyclonedx_export_of_sample_bom():
+    from skillbom.cyclonedx import to_cyclonedx
+    for name in ("examples/skill-bom/acme-2026-10.json", "docs/demo/skillbom.json"):
+        cdx = to_cyclonedx(json.loads((ROOT / name).read_text()))
+        assert not list(_cyclonedx_validator().iter_errors(cdx)), name

@@ -58,6 +58,7 @@ Both need Python 3.9 or newer.
 | **Flags** | Policy violations, licenses that don't permit commercial use, unknown, conflicting and custom licenses, modified copies, and incompatible bundling in plugins. |
 | **Reports** | A Skill BOM in JSON and a self-contained HTML report with a fix for every finding. It prints to PDF. |
 | **Merges** | `skillbom merge` combines scans from many machines into one organization-wide BOM. |
+| **Exports** | `skillbom export` writes CycloneDX 1.6, so skill inventories load into existing SBOM tools. |
 
 ```sh
 skillbom scan --policy policy.yaml              # allowed / denied licenses, severity overrides
@@ -65,6 +66,7 @@ skillbom scan --include-catalogs                # also plugins available in mark
 skillbom scan --no-home --root DIR              # scan only DIR
 skillbom merge a.json b.json -o all.json --html all.html
 skillbom report bom.json -o report.html
+skillbom export bom.json -o bom.cdx.json        # CycloneDX 1.6, for SBOM tools
 ```
 
 ## An open license file for skills
