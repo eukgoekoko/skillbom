@@ -136,3 +136,13 @@ def test_content_hash_spec_vector(tmp_path):
     (tmp_path / "scripts/greet.py").write_bytes(b"print('hello')\n")
     (tmp_path / "skill-license.yaml").write_bytes(b"not part of the hash\n")
     assert content_hash(tmp_path) == "a903ec8aa19fa69ad1fc36921aa599b7b924409ee0d8b60d2a07cc09719c74e2"
+
+
+def test_lock_source_never_keeps_credentials():
+    from skillbom.discover import _lock_source
+    src = _lock_source({"sourceUrl": "https://oauth2:ghp_SECRET@github.com/acme/skills.git?token=x#y",
+                        "skillPath": "skills/a/SKILL.md"})
+    assert src == {"type": "git", "url": "https://github.com/acme/skills", "path": "skills/a"}
+    assert "SECRET" not in str(src)
+    assert _lock_source({"sourceUrl": "git@github.com:acme/skills.git"})["url"] == "git@github.com:acme/skills"
+    assert _lock_source({"sourceUrl": "https://gitlab.example:8443/team/skills"})["url"] == "https://gitlab.example:8443/team/skills"

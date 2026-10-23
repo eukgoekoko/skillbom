@@ -8,6 +8,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import yaml
 
@@ -194,12 +195,22 @@ def skills_lock(home: Path) -> dict[str, dict]:
             for k, v in entries.items() if isinstance(v, dict)}
 
 
+def _public_url(url: str) -> str:
+    """Drop credentials and query strings: a private repo's URL can carry an access token
+    (https://user:TOKEN@host/...), and BOMs are meant to be shared."""
+    if url.startswith("git@"):
+        return url
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.hostname + (f":{parts.port}" if parts.port else ""), parts.path, "", ""))
+
+
 def _lock_source(entry: dict) -> dict | None:
     url = entry.get("sourceUrl")
     if not url and entry.get("sourceType") == "github" and entry.get("source"):
         url = f"https://github.com/{entry['source']}"
     if not isinstance(url, str) or not url.startswith(("https://", "http://", "git@")):
         return None  # local or unrecognized source: nothing to point at
+    url = _public_url(url)
     out = {"type": "git", "url": url[:-4] if url.endswith(".git") else url}
     folder = str(Path(str(entry.get("skillPath") or "")).parent)
     if folder not in ("", "."):
