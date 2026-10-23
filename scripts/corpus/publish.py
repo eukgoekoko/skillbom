@@ -21,10 +21,17 @@ def pct(n: int, total: int) -> float:
     return round(100 * n / total, 1)
 
 
+def license_source(stats: dict) -> dict:
+    rf, n = stats["resolvedFrom"], stats["count"]
+    own = sum(rf.get(k, 0) for k in OWN)
+    part = lambda c: {"count": c, "pct": pct(c, n)}
+    return {"skills": n, "own": part(own), "parentManifest": part(rf.get("parent-manifest", 0)),
+            "repoLicenseFile": part(rf.get("repo-license-file", 0)), "none": part(rf.get("none", 0))}
+
+
 def summary() -> dict:
     a = json.loads((CORPUS / "analysis.json").read_text())
     s = a["skills"]
-    rf, n = s["resolvedFrom"], s["count"]
     # The training round is history: it scored the scanner *before* the fixes it led to.
     # accuracy/results.json now holds a re-score after the fixes, so the blind numbers are fixed here.
     acc = {"training": {"n": 200, "ambiguous": 4, "scanner": "before the accuracy fixes",
@@ -39,14 +46,10 @@ def summary() -> dict:
         "study": "License landscape of public agent skills, October 2026",
         "url": "https://eukgoekoko.github.io/skillbom/research/corpus-2026-10.html",
         "repos": a["repos"],
-        "skills": n,
+        "skills": s["count"],
         "plugins": a["plugins"]["count"],
-        "licenseSource": {
-            "own": {"count": sum(rf.get(k, 0) for k in OWN), "pct": pct(sum(rf.get(k, 0) for k in OWN), n)},
-            "parentManifest": {"count": rf.get("parent-manifest", 0), "pct": pct(rf.get("parent-manifest", 0), n)},
-            "repoLicenseFile": {"count": rf.get("repo-license-file", 0), "pct": pct(rf.get("repo-license-file", 0), n)},
-            "none": {"count": rf.get("none", 0), "pct": pct(rf.get("none", 0), n)},
-        },
+        "licenseSource": license_source(s),
+        "licenseSourceOfficialMarketplace": license_source(a["skillsOfficialMarketplace"]),
         "skillCategories": s["categories"],
         "byRepo": a["byRepo"],
         "byRepoOfficialMarketplace": a["byRepoOfficialMarketplace"],
@@ -69,15 +72,11 @@ def bars(rows: list[tuple[str, float, str]], scale: float, unit: str = "%", seri
     return "\n".join(out)
 
 
-def table(head: list[str], rows: list[list[str]]) -> str:
-    th = "".join(f"<th>{escape(h)}</th>" for h in head)
-    tr = "".join("<tr>" + "".join(f"<td>{escape(c)}</td>" for c in r) + "</tr>" for r in rows)
-    return f'<details class="chart-table"><summary>Show as table</summary><table><thead><tr>{th}</tr></thead><tbody>{tr}</tbody></table></details>'
 
-
-def figure(fid: str, title: str, sub: str, body: str, tbl: str, note: str, legend: str = "") -> str:
-    return (f'<figure class="chart" id="{fid}">\n<figcaption><b>{escape(title)}</b><span>{escape(sub)}</span></figcaption>\n'
-            f'{legend}<div class="chart-bars" role="img" aria-label="{escape(title)}">\n{body}\n</div>\n{tbl}\n'
+def figure(fid: str, title: str, sub: str, body: str, note: str, legend: str = "") -> str:
+    return (f'<figure class="chart" id="{fid}" data-chart="{fid.removeprefix("chart-")}" '
+            f'data-src="corpus-2026-10-summary.json">\n<figcaption><b>{escape(title)}</b><span>{escape(sub)}</span></figcaption>\n'
+            f'{legend}<div class="chart-bars" role="img" aria-label="{escape(title)}">\n{body}\n</div>\n'
             f'<p class="chart-note">{escape(note)}</p>\n</figure>\n')
 
 
@@ -91,8 +90,7 @@ def charts(d: dict) -> dict[str, str]:
         "chart-license-source", "Where a skill's license comes from",
         f"Share of {n:,} public skills, by the evidence their license was resolved from",
         bars([(l, p, f"{l}: {c:,} of {n:,} skills ({p}%)") for l, p, c in rows], 100),
-        table(["license comes from", "skills", "share"], [[l, f"{c:,}", f"{p}%"] for l, p, c in rows]),
-        "Inherited: the first two rows, 81.3% together. 'The skill itself' covers SKILL.md frontmatter, "
+        "The first two rows are licenses a skill inherits from its surroundings. 'The skill itself' covers SKILL.md frontmatter, "
         "a License section in SKILL.md, and license files in the skill's own folder.")
 
     r, m = d["byRepo"], d["byRepoOfficialMarketplace"]
@@ -103,7 +101,6 @@ def charts(d: dict) -> dict[str, str]:
         "chart-restrictive", "Repositories with at least one skill under…",
         f"Share of the {r['repos']:,} repositories that contain skills",
         bars([(l, r[k], f"{l}: {r[k]}% of {r['repos']:,} repositories") for l, k in kinds], max(r[k] for _, k in kinds)),
-        table(["license type", "share of repositories"], [[l, f"{r[k]}%"] for l, k in kinds]),
         "One repository can count in several rows. Bars are scaled to the largest value.")
 
     measures = [("License every skill individually", "allSkillsOwnLicensePct"),
@@ -120,7 +117,6 @@ def charts(d: dict) -> dict[str, str]:
         "chart-marketplace", "Licensing practices: official marketplace vs. all repositories",
         f"All {r['repos']:,} repositories with skills vs. the {m['repos']} from the official marketplace",
         "\n".join(rows_html),
-        table(["measure", "all repositories", "official marketplace"], [[l, f"{r[k]}%", f"{m[k]}%"] for l, k in measures]),
         "Bars on a 0–25% scale.", legend)
     return {"license-source.html": source, "restrictive.html": restrictive, "marketplace.html": marketplace}
 

@@ -10,6 +10,7 @@
   "skills": 62704,
   "plugins": 3578,
   "licenseSource": {
+    "skills": 62704,
     "own": {
       "count": 10167,
       "pct": 16.2
@@ -25,6 +26,25 @@
     "none": {
       "count": 1565,
       "pct": 2.5
+    }
+  },
+  "licenseSourceOfficialMarketplace": {
+    "skills": 3496,
+    "own": {
+      "count": 966,
+      "pct": 27.6
+    },
+    "parentManifest": {
+      "count": 1555,
+      "pct": 44.5
+    },
+    "repoLicenseFile": {
+      "count": 914,
+      "pct": 26.1
+    },
+    "none": {
+      "count": 61,
+      "pct": 1.7
     }
   },
   "skillCategories": {
