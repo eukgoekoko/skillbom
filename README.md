@@ -116,7 +116,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## Status
 
-The specs are draft 0.1 and the scanner is a prototype. On a held-out sample of 100 public skills, license detection matched hand labels on every unambiguous case ([accuracy details](docs/research/corpus-2026-10.md#accuracy)). Issues and feedback are welcome.
+The specs are draft 0.1 and the scanner is a prototype; see the [changelog](CHANGELOG.md). On a held-out sample of 100 public skills, license detection matched hand labels on every unambiguous case ([accuracy details](docs/research/corpus-2026-10.md#accuracy)). Issues and feedback are welcome.
 
 License categories summarize license texts. They are not legal advice.
 

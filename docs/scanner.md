@@ -1,6 +1,6 @@
 # skillbom scanner reference
 
-**Version:** skillbom 0.1.0 · **Updated:** 2026-10-23 · **Source:** [`plugins/skillbom/src/skillbom/`](https://github.com/eukgoekoko/skillbom/tree/main/plugins/skillbom/src/skillbom)
+**Version:** skillbom 0.2.0 · **Updated:** 2026-10-23 · **Source:** [`plugins/skillbom/src/skillbom/`](https://github.com/eukgoekoko/skillbom/tree/main/plugins/skillbom/src/skillbom)
 
 How the reference scanner finds skills, works out their licenses and fills in a [Skill BOM](skill-bom.md). The format itself is tool-neutral; this page describes one implementation of it.
 
