@@ -1,0 +1,42 @@
+name: Scanner bug
+description: skillbom found the wrong license, crashed, or the report looks off.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please don't paste a whole Skill BOM or report: they contain file paths, publisher names and host ids. A few relevant lines are enough.
+  - type: input
+    id: version
+    attributes:
+      label: skillbom version
+      description: Output of `skillbom --version`, or the plugin version.
+      placeholder: skillbom 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: how
+    attributes:
+      label: How you ran it
+      options:
+        - Claude Code plugin (/skillbom:audit)
+        - Command line (skillbom scan / merge / report)
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Python
+      placeholder: macOS 15, Python 3.12
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+      description: For a wrong license, name the skill or repository, the license skillbom reported, and the license you believe is right.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Command and relevant output
+      render: text

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Read the specifications
+    url: https://eukgoekoko.github.io/skillbom/license-file.html
+    about: The skill license file and Skill BOM drafts, with field references and examples.
+  - name: Privacy statement
+    url: https://eukgoekoko.github.io/skillbom/privacy.html
+    about: What skillbom reads and writes. It runs locally and uploads nothing.

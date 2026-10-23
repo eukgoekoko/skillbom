@@ -1,0 +1,46 @@
+name: Spec feedback
+description: Comment on the skill license file or Skill BOM specification, the scanner reference or the study.
+title: "Feedback: "
+labels: [spec]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reading the drafts. Anything helps: unclear wording, a missing case, a better design, or real-world skills that don't fit.
+  - type: dropdown
+    id: document
+    attributes:
+      label: Document
+      options:
+        - Skill License File (license-file)
+        - Skill BOM (skill-bom)
+        - Scanner reference (scanner)
+        - Corpus study (research)
+        - Website / other
+    validations:
+      required: true
+  - type: input
+    id: section
+    attributes:
+      label: Section
+      description: The heading or a link to it (each heading has a # link).
+      placeholder: "e.g. Content hash, or https://eukgoekoko.github.io/skillbom/license-file.html#content-hash"
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of feedback
+      options:
+        - Something is unclear
+        - Something is missing
+        - Something looks wrong
+        - A proposal or alternative design
+        - It doesn't fit a real skill or plugin I know
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+      description: What you noticed, and what you'd suggest instead. Examples (a skill-license.yaml, a repository) help a lot.
+    validations:
+      required: true
