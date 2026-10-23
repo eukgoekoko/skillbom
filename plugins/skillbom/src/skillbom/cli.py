@@ -117,8 +117,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_home:
         candidates += discover.claude_code(home, include_catalogs=args.include_catalogs)
         candidates += discover.codex(home)
+        candidates += discover.agents(home)
         candidates += discover.managed()
-        roots += [home / ".claude", home / ".codex"]
+        roots += [home / ".claude", home / ".codex", home / ".agents"]
     for d in (p.expanduser().resolve() for p in args.project):
         candidates += discover.project(d)
         roots.append(d)

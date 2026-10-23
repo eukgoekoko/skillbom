@@ -125,7 +125,7 @@ One entry per distinct content. The same skill with the same content on 50 machi
 | `name` | string | yes | Display name. |
 | `version` | string | no | Version, if declared. |
 | `publisher` | string | no | Author or publisher, if declared. |
-| `source` | object | yes | Where it came from: `type` (`marketplace`, `git`, `registry`, `local` or `unknown`), plus optional `marketplace`, `url` and `ref`. |
+| `source` | object | yes | Where it came from: `type` (`marketplace`, `git`, `registry`, `local` or `unknown`), plus optional `marketplace`, `url`, `ref` and `path` (the component's directory inside the repository at `url`, when it was installed from a subfolder). |
 | `contentHash` | object | yes | Computed as in the [license file specification](license-file.md#content-hash). |
 | `integrity` | `match` · `modified` · `unverified` | no | Whether `contentHash` matches the hash declared in the component's skill license file, or `unverified` if none is declared. |
 | `license` | object | yes | See below. |

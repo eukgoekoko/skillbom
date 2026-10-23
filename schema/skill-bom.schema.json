@@ -344,6 +344,10 @@
             },
             "ref": {
               "type": "string"
+            },
+            "path": {
+              "type": "string",
+              "description": "Directory of the component inside the repository at `url`, when it was installed from a subfolder."
             }
           }
         },
