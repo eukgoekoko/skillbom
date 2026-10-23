@@ -28,11 +28,16 @@ In Claude Code, the `skillbom` plugin runs the same scanner through `/skillbom:a
 | Claude Code, managed | `/Library/Application Support/ClaudeCode` (macOS), `/etc/claude-code` (Linux), scanned recursively | `managed` |
 | Codex CLI | `$CODEX_HOME/skills` or `~/.codex/skills` | `user` |
 | Shared agents directory | `~/.agents/skills/*/`, where [`npx skills`](https://github.com/vercel-labs/skills) installs (it symlinks Claude Code's copy from here; agents such as Codex or Cursor read it directly), platform `agents` | `user` |
-| Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/` | `project` |
+| Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/`, `DIR/.agents/skills/*/` | `project` |
 | Anything else (`--root DIR`) | recursively: a directory with `.claude-plugin/plugin.json` is a plugin; one with `SKILL.md` is a skill | `local` |
 | Catalogs (`--include-catalogs`) | plugins that marketplace clones in `~/.claude/plugins/marketplaces/*` ship locally | `catalog` |
 
-For user-level skills, the `npx skills` lock file (`$XDG_STATE_HOME/skills/.skill-lock.json`, or `~/.agents/.skill-lock.json`) supplies the source: a skill whose folder name matches a lock entry gets `source: {type: git, url, path}`, where `path` is the skill's folder in that repository. The installer copies only that folder, so the repository's LICENSE never reaches the disk. When nothing else declares a license, the `license-unknown` finding names the repository to check. The scanner doesn't fetch it: it makes no network calls.
+The `npx skills` lock files supply the source of skills it installed. A skill whose folder name matches a lock entry gets `source: {type: git, url, path}`, where `path` is the skill's folder in that repository. There are two kinds of lock file:
+
+- **Global installs** are recorded in `$XDG_STATE_HOME/skills/.skill-lock.json`, or `~/.agents/.skill-lock.json`.
+- **Project installs** are recorded in `skills-lock.json` (version 1) in the directory the installer ran in, with the skills copied to its `.agents/skills`. The scanner reads it for each `--project DIR`, and in the home directory, because running the installer from home makes home the project.
+
+The installer copies only that folder, so the repository's LICENSE never reaches the disk. When nothing else declares a license, the `license-unknown` finding names the repository to check. The scanner doesn't fetch it: it makes no network calls.
 
 Skills under a plugin's `skills/*/` become separate components (`installScope: plugin`) with a `contains` dependency from the plugin.
 

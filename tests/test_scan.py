@@ -395,3 +395,39 @@ def test_plugin_runs_without_installed_pyyaml():
                          capture_output=True, text=True)
     assert out.returncode == 0, out.stderr
     assert subprocess.run([str(plugin / "scripts/skillbom"), "--version"], capture_output=True, text=True).stdout.startswith("skillbom ")
+
+
+def test_npx_skills_project_lock_in_home(tmp_path, monkeypatch):
+    """skills 1.7.4 run from the home directory: a project install. Copies land in
+    ~/.agents/skills (no symlinks) and the sources go to ~/skills-lock.json (version 1),
+    while ~/.agents/.skill-lock.json only lists global installs."""
+    monkeypatch.delenv("XDG_STATE_HOME", raising=False)
+    h = tmp_path / "home"
+    skill(h / ".agents/skills/grill", "grill")
+    skill(h / ".agents/skills/finder", "finder")
+    write(h / "skills-lock.json", json.dumps({"version": 1, "skills": {
+        "grill": {"source": "acme/skills", "sourceType": "github",
+                  "skillPath": "skills/productivity/grill/SKILL.md", "computedHash": "0" * 64}}}))
+    write(h / ".agents/.skill-lock.json", json.dumps({"version": 3, "skills": {
+        "finder": {"source": "acme/tools", "sourceType": "github",
+                   "sourceUrl": "https://github.com/acme/tools.git", "skillPath": "skills/finder/SKILL.md"}}}))
+    bom = scan(tmp_path, "--home", str(h))
+    assert by_name(bom, "grill")["source"] == {
+        "type": "git", "url": "https://github.com/acme/skills", "path": "skills/productivity/grill"}
+    assert by_name(bom, "finder")["source"]["url"] == "https://github.com/acme/tools"
+
+
+def test_npx_skills_project_install(tmp_path):
+    """--project DIR reads DIR/skills-lock.json for DIR/.agents/skills and the project's
+    agent folders."""
+    proj = tmp_path / "proj"
+    skill(proj / ".agents/skills/review", "review")
+    (proj / ".claude/skills").mkdir(parents=True)
+    (proj / ".claude/skills/review").symlink_to(proj / ".agents/skills/review")
+    write(proj / "skills-lock.json", json.dumps({"version": 1, "skills": {
+        "review": {"source": "acme/review", "sourceType": "github", "skillPath": "SKILL.md"}}}))
+    bom = scan(tmp_path, "--no-home", "--project", str(proj))
+    review = by_name(bom, "review")
+    assert review["source"] == {"type": "git", "url": "https://github.com/acme/review"}
+    assert sorted((i["platform"], i["installScope"]) for i in review["installations"]) == [
+        ("agents", "project"), ("claude-code", "project")]

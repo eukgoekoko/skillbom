@@ -179,20 +179,34 @@ def _catalogs(plugins_dir: Path) -> list[Candidate]:
     return out
 
 
-def skills_lock(home: Path) -> dict[str, dict]:
-    """Install records of `npx skills` (vercel-labs/skills): folder name -> lock entry.
-
-    The installer copies only the skill's own folder, so a LICENSE at the root of its
-    repository is never on disk; the recorded source is the only lead to it.
-    """
-    state = os.environ.get("XDG_STATE_HOME")
-    path = Path(state) / "skills/.skill-lock.json" if state else home / ".agents/.skill-lock.json"
+def _read_lock(path: Path) -> dict[str, dict]:
+    """Entries of an `npx skills` lock file, keyed by installed folder name."""
     entries = read_json(path).get("skills")
     if not isinstance(entries, dict):
         return {}
     # Folder names are the installer's sanitizeName() of the lock key.
     return {re.sub(r"[^a-z0-9._]+", "-", k.lower()).strip("-."): v
             for k, v in entries.items() if isinstance(v, dict)}
+
+
+def project_lock(directory: Path) -> dict[str, dict]:
+    """`skills-lock.json` (version 1), written into the directory `npx skills` ran in;
+    its skills are copied to <directory>/.agents/skills."""
+    return _read_lock(directory / "skills-lock.json")
+
+
+def skills_lock(home: Path) -> dict[str, dict]:
+    """Install records of `npx skills` (vercel-labs/skills) for the home directory:
+    folder name -> lock entry.
+
+    The installer copies only the skill's own folder, so a LICENSE at the root of its
+    repository is never on disk; the recorded source is the only lead to it. Global
+    installs are recorded in .skill-lock.json; an install run *from* the home directory
+    counts as a project install and is recorded in ~/skills-lock.json.
+    """
+    state = os.environ.get("XDG_STATE_HOME")
+    path = Path(state) / "skills/.skill-lock.json" if state else home / ".agents/.skill-lock.json"
+    return {**project_lock(home), **_read_lock(path)}
 
 
 def _public_url(url: str) -> str:
@@ -277,8 +291,10 @@ def managed() -> list[Candidate]:
 
 def project(directory: Path) -> list[Candidate]:
     out: list[Candidate] = []
-    for sub, platform in ((".claude/skills", "claude-code"), (".codex/skills", "codex-cli")):
+    lock = project_lock(directory)
+    for sub, platform in ((".claude/skills", "claude-code"), (".codex/skills", "codex-cli"),
+                          (".agents/skills", "agents")):
         d = directory / sub
         if d.is_dir():
-            out += _skills_in(d, platform=platform, install_scope="project", boundary=directory)
+            out += _apply_lock(_skills_in(d, platform=platform, install_scope="project", boundary=directory), lock)
     return out
