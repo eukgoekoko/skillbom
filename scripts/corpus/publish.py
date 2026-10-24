@@ -141,14 +141,15 @@ WITHHELD = "(withheld until the maintainers are notified)"
 
 
 def _mask_samples(withheld: set[str]) -> None:
-    """The published accuracy tables name each sampled repository; mask the withheld ones there too.
-    Verdicts stay, so the accuracy numbers can still be re-checked."""
+    """The published accuracy tables name each sampled repository; mask the withheld ones there too,
+    along with the labeling note, which can describe the finding. Verdicts stay, so the accuracy
+    numbers can still be re-checked."""
     for name in ("accuracy-train-2026-10.csv", "accuracy-holdout-2026-10.csv"):
         path = ROOT / "docs/research" / name
         rows = list(csv.DictReader(io.StringIO(path.read_text())))
         for r in rows:
-            if r["repo"].replace("/", "__") in withheld:
-                r["repo"], r["path"] = WITHHELD, ""
+            if r["repo"] == WITHHELD or r["repo"].replace("/", "__") in withheld:
+                r["repo"], r["path"], r["note"] = WITHHELD, "", ""
         out = io.StringIO()
         w = csv.DictWriter(out, fieldnames=list(rows[0]), lineterminator="\n")
         w.writeheader()

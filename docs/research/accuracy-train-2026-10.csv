@@ -10,7 +10,7 @@ S008,nateherkai/scroll-craft,/plugins/nateherk-design/skills/scroll-craft,MIT,pe
 S009,agents365-ai/drawio-skill,/skills/drawio-skill,MIT,permissive,True,MIT,permissive,True,True,False,
 S010,oxylabs/agent-skills,/skills/web-unblocker,MIT,permissive,False,MIT,permissive,False,True,False,
 S011,backtthefuture/video-transcript,/,MIT,permissive,True,MIT,permissive,True,True,False,
-S012,(withheld until the maintainers are notified),,LicenseRef-proprietary,proprietary,True,LicenseRef-proprietary,proprietary,True,True,False,Anthropic terms in skill dir; repo MIT
+S012,(withheld until the maintainers are notified),,LicenseRef-proprietary,proprietary,True,LicenseRef-proprietary,proprietary,True,True,False,
 S013,gc-ai-inc/gc-ai-claude-plugin,/skills/organize-matter,MIT,permissive,False,MIT,permissive,False,True,False,
 S014,leonxlnx/taste-skill,/skills/taste-skill,MIT,permissive,False,MIT,permissive,False,True,False,
 S015,milisp/mcp-linker,/plugins/macos/skills/macos-notarize-distribute,MIT,permissive,False,MIT,permissive,False,True,True,plugin.json MIT vs repo root AGPL-3.0
