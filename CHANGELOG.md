@@ -1,8 +1,6 @@
 # Changelog
 
-## 0.2.0 — unreleased
-
-Ships after the Claude plugin directory approves 0.1.1.
+## 0.2.0 — 2026-11-07
 
 **Added**
 
