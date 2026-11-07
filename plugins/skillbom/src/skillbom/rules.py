@@ -81,7 +81,8 @@ def _composition_problems(declared: dict) -> list[str]:
     return problems
 
 
-def evaluate(ref: str, name: str, detection: Detection, integrity: str, policy: Policy) -> list[dict]:
+def evaluate(ref: str, name: str, detection: Detection, integrity: str, policy: Policy,
+             source: dict | None = None) -> list[dict]:
     """Findings (without ids) for one component."""
     found: list[tuple[str, str, str | None]] = []  # (rule, message, remediation)
     expr = detection.expression
@@ -89,7 +90,15 @@ def evaluate(ref: str, name: str, detection: Detection, integrity: str, policy: 
     if detection.declared_error:
         found.append(("license-invalid", f"skill-license file of '{name}' is invalid: {detection.declared_error}",
                       "Fix the file so it validates against schema/skill-license.schema.json."))
-    if detection.status == "unknown":
+    if detection.status == "unknown" and (source or {}).get("type") == "git":
+        # Installed by copying one folder out of a repository: its LICENSE stayed behind.
+        repo = source["url"] + (f" ({source['path']})" if source.get("path") else "")
+        found.append(("license-unknown",
+                      f"No license found for '{name}'. It was copied from {repo} without the "
+                      "repository's LICENSE, which may cover it.",
+                      f"Check the license in {source['url']}, then record it in a skill-license.yaml "
+                      "next to SKILL.md."))
+    elif detection.status == "unknown":
         found.append(("license-unknown", f"No license found for '{name}'.",
                       "Ask the author for a license, replace the component, or remove it."))
     else:

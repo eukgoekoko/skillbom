@@ -1,6 +1,6 @@
 # skillbom scanner reference
 
-**Version:** skillbom 0.1.0 · **Updated:** 2026-10-23 · **Source:** [`plugins/skillbom/src/skillbom/`](https://github.com/eukgoekoko/skillbom/tree/main/plugins/skillbom/src/skillbom)
+**Version:** skillbom 0.2.0 · **Updated:** 2026-10-23 · **Source:** [`plugins/skillbom/src/skillbom/`](https://github.com/eukgoekoko/skillbom/tree/main/plugins/skillbom/src/skillbom)
 
 How the reference scanner finds skills, works out their licenses and fills in a [Skill BOM](skill-bom.md). The format itself is tool-neutral; this page describes one implementation of it.
 
@@ -14,6 +14,8 @@ skillbom scan --no-home --root DIR                   # only DIR
 skillbom scan --host-id laptop-anna                  # your own machine name
 skillbom merge a.json b.json -o all.json --html all.html
 skillbom report bom.json -o report.html
+skillbom export bom.json -o bom.cdx.json              # CycloneDX 1.6
+skillbom scan --cyclonedx bom.cdx.json               # or straight from a scan (also: merge)
 ```
 
 In Claude Code, the `skillbom` plugin runs the same scanner through `/skillbom:audit`.
@@ -27,9 +29,17 @@ In Claude Code, the `skillbom` plugin runs the same scanner through `/skillbom:a
 | | installed plugins from `~/.claude/plugins/installed_plugins.json` (falling back to `plugins/cache/`) (`settings.json` isn't read, so whether a plugin is enabled isn't recorded: that file can hold credentials) | as installed |
 | Claude Code, managed | `/Library/Application Support/ClaudeCode` (macOS), `/etc/claude-code` (Linux), scanned recursively | `managed` |
 | Codex CLI | `$CODEX_HOME/skills` or `~/.codex/skills` | `user` |
-| Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/` | `project` |
+| Shared agents directory | `~/.agents/skills/*/`, where [`npx skills`](https://github.com/vercel-labs/skills) installs (it symlinks Claude Code's copy from here; agents such as Codex or Cursor read it directly), platform `agents` | `user` |
+| Projects (`--project DIR`) | `DIR/.claude/skills/*/`, `DIR/.codex/skills/*/`, `DIR/.agents/skills/*/` | `project` |
 | Anything else (`--root DIR`) | recursively: a directory with `.claude-plugin/plugin.json` is a plugin; one with `SKILL.md` is a skill | `local` |
 | Catalogs (`--include-catalogs`) | plugins that marketplace clones in `~/.claude/plugins/marketplaces/*` ship locally | `catalog` |
+
+The `npx skills` lock files supply the source of skills it installed. A skill whose folder name matches a lock entry gets `source: {type: git, url, path}`, where `path` is the skill's folder in that repository. There are two kinds of lock file:
+
+- **Global installs** are recorded in `$XDG_STATE_HOME/skills/.skill-lock.json`, or `~/.agents/.skill-lock.json`.
+- **Project installs** are recorded in `skills-lock.json` (version 1) in the directory the installer ran in, with the skills copied to its `.agents/skills`. The scanner reads it for each `--project DIR`, and in the home directory, because running the installer from home makes home the project.
+
+The installer copies only that folder, so the repository's LICENSE never reaches the disk. When nothing else declares a license, the `license-unknown` finding names the repository to check. The scanner doesn't fetch it: it makes no network calls.
 
 Skills under a plugin's `skills/*/` become separate components (`installScope: plugin`) with a `contains` dependency from the plugin.
 
@@ -81,6 +91,26 @@ To apply the [grant rules](license-file.md#grants) to open-source licenses, the 
 - **Conflicting detections:** when machines detect different licenses for the same content (for example, one copy sits in a repository with a LICENSE and another doesn't), the stronger status wins (declared > inferred > unknown), then the higher confidence. License findings are taken only from the scan whose detection won, so stale findings from a weaker scan are dropped. Other findings are deduplicated.
 - **Policies:** if the inputs used different policies, the CLI warns and the merged BOM records none.
 
+## Creating a license file
+
+`skillbom init` writes a [skill license file](license-file.md) for a skill or plugin you author:
+
+```sh
+skillbom init skills/my-skill --dry-run           # preview
+skillbom init skills/my-skill --copy-license      # write it; copy an inherited LICENSE into the folder
+skillbom init skills/my-skill --update            # after editing the skill: refresh the content hash
+```
+
+- **Values filled in:** the id (`publisher/name`, from `--publisher`, the plugin's author or the git remote's owner), the version (declared, or `0.1.0`), the license (what the scanner detects for the folder), the license text (the folder's own license file, or the inherited one), and the content hash.
+- **License lookup:** inherited licenses are searched up to the git repository root. Outside a git repository, only the folder itself is checked.
+- **What it won't do:** guess a license that isn't a standard one, overwrite an existing file (use `--update`), or write commercial offers. Those are written by hand.
+
+In Claude Code, the plugin's `/skillbom:license-file` skill walks you through the same steps.
+
+## CycloneDX export
+
+`skillbom export` converts a Skill BOM to CycloneDX 1.6 JSON following the [mapping in the specification](skill-bom.md#mapping-to-cyclonedx). `scan` and `merge` can write it directly with `--cyclonedx FILE`. The output is tested against the official CycloneDX 1.6 JSON schema. The full license evidence stays in the Skill BOM; the export carries the winning source and its confidence.
+
 ## Policies
 
 A policy is a YAML file passed with `--policy`:
@@ -111,5 +141,6 @@ The scanner runs locally and uploads nothing. Host ids default to a pseudonymous
 ## Known limitations
 
 - **Plugin copies don't inherit their repository's LICENSE.** An installed plugin's copy lives outside its marketplace clone, so it doesn't inherit the clone's root LICENSE, while the catalog copy does.
+- **A repository's LICENSE isn't fetched for `npx skills` installs.** The source is recorded and named in the finding, but the license stays `NOASSERTION` until someone adds a `skill-license.yaml`.
 - **Only files the scanner knows are read.** License statements in READMEs or source-file headers aren't considered.
 - **Repos that license docs and code separately** (e.g. `LICENSE` for code and `LICENSE-CONTENT` for docs) are reported as a choice between both licenses.

@@ -11,7 +11,7 @@ body:
     attributes:
       label: skillbom version
       description: Output of `skillbom --version`, or the plugin version.
-      placeholder: skillbom 0.1.0
+      placeholder: skillbom 0.2.0
     validations:
       required: true
   - type: dropdown

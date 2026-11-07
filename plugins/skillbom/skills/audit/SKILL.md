@@ -26,6 +26,7 @@ Add options only when the user's request calls for them:
 | a specific folder of skills | `--root DIR` (add `--no-home` to scan only that folder) |
 | their company name on the report | `--organization "NAME"` |
 | a machine name instead of the pseudonymous host id | `--host-id NAME` |
+| a CycloneDX SBOM for their SBOM tools | `--cyclonedx "$OUT/skillbom.cdx.json"` |
 
 To combine scans from several machines (BOM files the user collected), run `"<base>/../../scripts/skillbom" merge A.json B.json ... -o "$OUT/merged.json" --html "$OUT/merged.html"` instead of `scan`.
 

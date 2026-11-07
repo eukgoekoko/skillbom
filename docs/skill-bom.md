@@ -125,7 +125,7 @@ One entry per distinct content. The same skill with the same content on 50 machi
 | `name` | string | yes | Display name. |
 | `version` | string | no | Version, if declared. |
 | `publisher` | string | no | Author or publisher, if declared. |
-| `source` | object | yes | Where it came from: `type` (`marketplace`, `git`, `registry`, `local` or `unknown`), plus optional `marketplace`, `url` and `ref`. |
+| `source` | object | yes | Where it came from: `type` (`marketplace`, `git`, `registry`, `local` or `unknown`), plus optional `marketplace`, `url`, `ref` and `path` (the component's directory inside the repository at `url`, when it was installed from a subfolder). |
 | `contentHash` | object | yes | Computed as in the [license file specification](license-file.md#content-hash). |
 | `integrity` | `match` · `modified` · `unverified` | no | Whether `contentHash` matches the hash declared in the component's skill license file, or `unverified` if none is declared. |
 | `license` | object | yes | See below. |
@@ -247,21 +247,28 @@ How conflicting license evidence across machines is resolved is up to the produc
 
 ## Mapping to CycloneDX
 
-*Proposed; not yet implemented as an export.* A Skill BOM maps onto [CycloneDX 1.6](https://cyclonedx.org/docs/1.6/json/) as follows:
+A Skill BOM maps onto [CycloneDX 1.6](https://cyclonedx.org/docs/1.6/json/), so it can be loaded into tools that already read SBOMs. The reference scanner implements this mapping as `skillbom export` (see [the scanner reference](scanner.md#cyclonedx-export)), and its output validates against the official CycloneDX 1.6 schema.
 
 | Skill BOM | CycloneDX |
 |---|---|
-| `bomFormat`, `specVersion` | `bomFormat: "CycloneDX"`, `specVersion: "1.6"` |
-| `serialNumber` | `serialNumber` |
+| `bomFormat`, `specVersion` | `bomFormat: "CycloneDX"`, `specVersion: "1.6"`, `version: 1` |
+| `serialNumber` | `serialNumber` (the same value) |
 | `metadata.timestamp`, `metadata.tool` | `metadata.timestamp`, `metadata.tools.components[]` |
+| `metadata.scope.organization` | `metadata.supplier.name` |
+| `metadata.policy`, `summary.hosts` | `metadata.properties`: `skillbom:policy`, `skillbom:hosts` |
 | component `bomRef`, `name`, `version`, `publisher` | component `bom-ref`, `name`, `version`, `publisher` |
+| component `id` (`<publisher>/<name>`) | `group`: the publisher part |
 | component `kind` | `type: "application"`, plus property `skillbom:kind` |
 | `contentHash` | `hashes: [{ alg: "SHA-256", content }]` |
-| `license.expression` | `licenses: [{ expression }]` |
-| `source.url`, `source.ref` | `externalReferences: [{ type: "vcs", url }]` |
-| `license.status`, `evidence`, `integrity`, `entitlement`, `installations` | properties in the `skillbom:` namespace |
+| `license.expression` | `licenses: [{ expression }]`, omitted for `NOASSERTION` |
+| `license.status`, the winning evidence | properties `skillbom:license.status`, `skillbom:license.source`, `skillbom:license.confidence` |
+| `source` | `externalReferences: [{ type: "vcs", url }]` when a URL is known; properties `skillbom:source.type`, `skillbom:source.marketplace` |
+| `installations` | `evidence.occurrences`: `location` is `<host>:<path>`, `additionalContext` the install scope and platform |
+| `integrity`, `entitlement.status` | properties `skillbom:integrity`, `skillbom:entitlement.status` |
 | `dependencies` | `dependencies` |
-| `findings` | `annotations`, with the affected components as `subjects` |
+| `findings` | `annotations`, with the affected components as `subjects` and the text `[severity] rule: message` |
+
+The full license evidence has no CycloneDX equivalent. Only the winning source and its confidence are carried over, so keep the Skill BOM itself for audits.
 
 ## Conformance
 
@@ -292,7 +299,7 @@ Same scheme as the [license file](license-file.md#versioning): `MAJOR.MINOR`. 0.
 
 - **Seat counting:** by distinct OS user, by agent account, or by actual use (which would need telemetry)?
 - **Sharing:** how should BOMs be pseudonymized when they are shared with vendors?
-- **Exports:** a CycloneDX export implementing the mapping above, and an SPDX one.
+- **Exports:** an SPDX export, in addition to CycloneDX.
 
 Comments are welcome [as GitHub issues](https://github.com/eukgoekoko/skillbom/issues).
 

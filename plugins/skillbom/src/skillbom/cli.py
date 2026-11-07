@@ -9,6 +9,9 @@ from pathlib import Path
 
 from skillbom import __version__, discover
 from skillbom.bom import build
+from skillbom.cyclonedx import to_cyclonedx
+from skillbom.init import InitError
+from skillbom.init import init as init_license
 from skillbom.merge import merge, policies
 from skillbom.report import render
 from skillbom.rules import Policy
@@ -32,13 +35,30 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--host-id", help="identifier for this machine in the BOM (default: a pseudonymous hash)")
     s.add_argument("-o", "--output", type=Path, help="write the BOM here instead of stdout")
     s.add_argument("--html", type=Path, metavar="FILE", help="also write an HTML audit report")
+    s.add_argument("--cyclonedx", type=Path, metavar="FILE", help="also write a CycloneDX 1.6 JSON export")
     s.add_argument("-q", "--quiet", action="store_true", help="no summary on stderr")
     m = sub.add_parser("merge", help="merge Skill BOMs from several machines into one")
     m.add_argument("boms", type=Path, nargs="+", help="Skill BOM JSON files")
     m.add_argument("-o", "--output", type=Path, help="write the merged BOM here instead of stdout")
     m.add_argument("--html", type=Path, metavar="FILE", help="also write an HTML audit report")
+    m.add_argument("--cyclonedx", type=Path, metavar="FILE", help="also write a CycloneDX 1.6 JSON export")
     m.add_argument("--organization", help="organization name (default: the inputs' common one)")
     m.add_argument("-q", "--quiet", action="store_true", help="no summary on stderr")
+    e = sub.add_parser("export", help="convert a Skill BOM (JSON) to another format")
+    e.add_argument("bom", type=Path, help="Skill BOM JSON file")
+    e.add_argument("--format", choices=["cyclonedx"], default="cyclonedx", help="output format (default: cyclonedx)")
+    e.add_argument("-o", "--output", type=Path, help="write here instead of stdout")
+    i = sub.add_parser("init", help="write a skill-license.yaml for a skill or plugin (for authors)")
+    i.add_argument("directory", type=Path, nargs="?", default=Path("."), help="skill or plugin folder (default: .)")
+    i.add_argument("--license", help="SPDX expression; default: what skillbom detects")
+    i.add_argument("--publisher", help="publisher part of the id; default: plugin author or git remote owner")
+    i.add_argument("--name", help="name part of the id; default: the skill's or plugin's name")
+    i.add_argument("--id", help="full id, publisher/name (overrides --publisher and --name)")
+    i.add_argument("--version", help="semantic version; default: declared version or 0.1.0")
+    i.add_argument("--license-text", metavar="PATH_OR_URL", help="where the full license text is")
+    i.add_argument("--copy-license", action="store_true", help="copy an inherited LICENSE into the folder")
+    i.add_argument("--update", action="store_true", help="refresh the content hash (and --version/--license) of an existing file")
+    i.add_argument("--dry-run", action="store_true", help="print the file instead of writing it")
     r = sub.add_parser("report", help="render a Skill BOM (JSON) as an HTML audit report")
     r.add_argument("bom", type=Path, help="Skill BOM JSON file")
     r.add_argument("-o", "--output", type=Path, required=True, help="HTML file to write")
@@ -63,6 +83,27 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "report":
         args.output.write_text(render(json.loads(args.bom.read_text()), title=args.title))
         return 0
+    if args.command == "init":
+        try:
+            path, text, notes = init_license(
+                args.directory, publisher=args.publisher, name=args.name, id=args.id, version=args.version,
+                license=args.license, license_text=args.license_text, copy_license=args.copy_license,
+                update=args.update, dry_run=args.dry_run)
+        except InitError as e:
+            print(f"skillbom init: {e}", file=sys.stderr)
+            return 2
+        for note in notes:
+            print(f"note: {note}", file=sys.stderr)
+        if args.dry_run:
+            sys.stdout.write(text)
+        else:
+            path.write_text(text)
+            print(f"{'updated' if args.update else 'wrote'} {path}", file=sys.stderr)
+        return 0
+    if args.command == "export":
+        text = _json(to_cyclonedx(json.loads(args.bom.read_text())))
+        args.output.write_text(text) if args.output else sys.stdout.write(text)
+        return 0
     if args.command == "merge":
         boms = [json.loads(p.read_text()) for p in args.boms]
         if len(policies(boms)) > 1:
@@ -76,8 +117,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_home:
         candidates += discover.claude_code(home, include_catalogs=args.include_catalogs)
         candidates += discover.codex(home)
+        candidates += discover.agents(home)
         candidates += discover.managed()
-        roots += [home / ".claude", home / ".codex"]
+        roots += [home / ".claude", home / ".codex", home / ".agents"]
     for d in (p.expanduser().resolve() for p in args.project):
         candidates += discover.project(d)
         roots.append(d)
@@ -92,13 +134,19 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def _json(doc: dict) -> str:
+    return json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
+
+
 def _write(bom: dict, args) -> None:
-    text = json.dumps(bom, indent=2, ensure_ascii=False) + "\n"
+    text = _json(bom)
     if args.output:
         args.output.write_text(text)
     else:
         sys.stdout.write(text)
     if args.html:
         args.html.write_text(render(bom))
+    if args.cyclonedx:
+        args.cyclonedx.write_text(_json(to_cyclonedx(bom)))
     if not args.quiet:
         print(_summary(bom), file=sys.stderr)

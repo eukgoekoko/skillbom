@@ -8,6 +8,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import yaml
 
@@ -178,13 +179,85 @@ def _catalogs(plugins_dir: Path) -> list[Candidate]:
     return out
 
 
+def _read_lock(path: Path) -> dict[str, dict]:
+    """Entries of an `npx skills` lock file, keyed by installed folder name."""
+    entries = read_json(path).get("skills")
+    if not isinstance(entries, dict):
+        return {}
+    # Folder names are the installer's sanitizeName() of the lock key.
+    return {re.sub(r"[^a-z0-9._]+", "-", k.lower()).strip("-."): v
+            for k, v in entries.items() if isinstance(v, dict)}
+
+
+def project_lock(directory: Path) -> dict[str, dict]:
+    """`skills-lock.json` (version 1), written into the directory `npx skills` ran in;
+    its skills are copied to <directory>/.agents/skills."""
+    return _read_lock(directory / "skills-lock.json")
+
+
+def skills_lock(home: Path) -> dict[str, dict]:
+    """Install records of `npx skills` (vercel-labs/skills) for the home directory:
+    folder name -> lock entry.
+
+    The installer copies only the skill's own folder, so a LICENSE at the root of its
+    repository is never on disk; the recorded source is the only lead to it. Global
+    installs are recorded in .skill-lock.json; an install run *from* the home directory
+    counts as a project install and is recorded in ~/skills-lock.json.
+    """
+    state = os.environ.get("XDG_STATE_HOME")
+    path = Path(state) / "skills/.skill-lock.json" if state else home / ".agents/.skill-lock.json"
+    return {**project_lock(home), **_read_lock(path)}
+
+
+def _public_url(url: str) -> str:
+    """Drop credentials and query strings: a private repo's URL can carry an access token
+    (https://user:TOKEN@host/...), and BOMs are meant to be shared."""
+    if url.startswith("git@"):
+        return url
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.hostname + (f":{parts.port}" if parts.port else ""), parts.path, "", ""))
+
+
+def _lock_source(entry: dict) -> dict | None:
+    url = entry.get("sourceUrl")
+    if not url and entry.get("sourceType") == "github" and entry.get("source"):
+        url = f"https://github.com/{entry['source']}"
+    if not isinstance(url, str) or not url.startswith(("https://", "http://", "git@")):
+        return None  # local or unrecognized source: nothing to point at
+    url = _public_url(url)
+    out = {"type": "git", "url": url[:-4] if url.endswith(".git") else url}
+    folder = str(Path(str(entry.get("skillPath") or "")).parent)
+    if folder not in ("", "."):
+        out["path"] = folder
+    return out
+
+
+def _apply_lock(cands: list[Candidate], lock: dict[str, dict]) -> list[Candidate]:
+    for c in cands:
+        if c.source.get("type") == "local" and c.path.name in lock:
+            c.source = _lock_source(lock[c.path.name]) or c.source
+    return cands
+
+
+def agents(home: Path) -> list[Candidate]:
+    """~/.agents/skills: the shared directory `npx skills` installs into. Claude Code gets a
+    symlink to it in ~/.claude/skills; agents that read it directly (Codex, Cursor, Amp, ...)
+    get nothing else, so skills installed only for them live here alone."""
+    skills = home / ".agents/skills"
+    if not skills.is_dir():
+        return []
+    return _apply_lock(_skills_in(skills, platform="agents", install_scope="user", boundary=skills),
+                       skills_lock(home))
+
+
 def claude_code(home: Path, include_catalogs: bool = False) -> list[Candidate]:
     base = home / ".claude"
     out: list[Candidate] = []
     skills = base / "skills"
     if skills.is_dir():
-        out += [c for c in _skills_in(skills, platform="claude-code", install_scope="user", boundary=skills)
-                if c.path.name != "synced"]
+        out += _apply_lock([c for c in _skills_in(skills, platform="claude-code", install_scope="user",
+                                                   boundary=skills) if c.path.name != "synced"],
+                           skills_lock(home))
         # Skills synced from the user's claude.ai account: synced/<org>_<account>/<skill>/
         for skill_md in sorted(skills.glob("synced/*/*/SKILL.md")):
             out.append(_skill(skill_md.parent, platform="claude-code", install_scope="user",
@@ -202,7 +275,8 @@ def codex(home: Path) -> list[Candidate]:
     skills = Path(os.environ.get("CODEX_HOME") or home / ".codex") / "skills"
     if not skills.is_dir():
         return []
-    return _skills_in(skills, platform="codex-cli", install_scope="user", boundary=skills)
+    return _apply_lock(_skills_in(skills, platform="codex-cli", install_scope="user", boundary=skills),
+                       skills_lock(home))
 
 
 def managed() -> list[Candidate]:
@@ -217,8 +291,10 @@ def managed() -> list[Candidate]:
 
 def project(directory: Path) -> list[Candidate]:
     out: list[Candidate] = []
-    for sub, platform in ((".claude/skills", "claude-code"), (".codex/skills", "codex-cli")):
+    lock = project_lock(directory)
+    for sub, platform in ((".claude/skills", "claude-code"), (".codex/skills", "codex-cli"),
+                          (".agents/skills", "agents")):
         d = directory / sub
         if d.is_dir():
-            out += _skills_in(d, platform=platform, install_scope="project", boundary=directory)
+            out += _apply_lock(_skills_in(d, platform=platform, install_scope="project", boundary=directory), lock)
     return out

@@ -8,7 +8,9 @@ See what licenses your installed AI agent skills and plugins are under.
 /skillbom:audit
 ```
 
-Or just ask Claude *"what licenses are my skills under?"*. The `audit` skill:
+Or just ask Claude *"what licenses are my skills under?"*. Skill authors can run `/skillbom:license-file` to give their own skill a machine-readable license file.
+
+The `audit` skill:
 
 1. **Scans** the skills and plugins installed for Claude Code and Codex: user, project, managed and claude.ai-synced skills, plus installed plugins and the skills inside them.
 2. **Works out** each one's license from license files, manifests, SKILL.md and LICENSE texts.

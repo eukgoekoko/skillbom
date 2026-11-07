@@ -49,6 +49,14 @@ skillbom scan -o bom.json --html report.html
 
 Both need Python 3.9 or newer.
 
+**For skill authors:** give your skill a machine-readable license that travels with the folder:
+
+```sh
+skillbom init path/to/your-skill --copy-license   # writes skill-license.yaml
+```
+
+In Claude Code: `/skillbom:license-file`.
+
 ## What it does
 
 | | |
@@ -58,6 +66,7 @@ Both need Python 3.9 or newer.
 | **Flags** | Policy violations, licenses that don't permit commercial use, unknown, conflicting and custom licenses, modified copies, and incompatible bundling in plugins. |
 | **Reports** | A Skill BOM in JSON and a self-contained HTML report with a fix for every finding. It prints to PDF. |
 | **Merges** | `skillbom merge` combines scans from many machines into one organization-wide BOM. |
+| **Exports** | `skillbom export` writes CycloneDX 1.6, so skill inventories load into existing SBOM tools. |
 
 ```sh
 skillbom scan --policy policy.yaml              # allowed / denied licenses, severity overrides
@@ -65,6 +74,7 @@ skillbom scan --include-catalogs                # also plugins available in mark
 skillbom scan --no-home --root DIR              # scan only DIR
 skillbom merge a.json b.json -o all.json --html all.html
 skillbom report bom.json -o report.html
+skillbom export bom.json -o bom.cdx.json        # CycloneDX 1.6, for SBOM tools
 ```
 
 ## An open license file for skills
@@ -106,7 +116,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## Status
 
-The specs are draft 0.1 and the scanner is a prototype. On a held-out sample of 100 public skills, license detection matched hand labels on every unambiguous case ([accuracy details](docs/research/corpus-2026-10.md#accuracy)). Issues and feedback are welcome.
+The specs are draft 0.1 and the scanner is a prototype; see the [changelog](CHANGELOG.md). On a held-out sample of 100 public skills, license detection matched hand labels on every unambiguous case ([accuracy details](docs/research/corpus-2026-10.md#accuracy)). Issues and feedback are welcome.
 
 License categories summarize license texts. They are not legal advice.
 
